@@ -7,13 +7,15 @@ import Catalog from './pages/Catalog';
 import ProductDetail from './pages/ProductDetail';
 import Checkout from './pages/Checkout';
 
+import AiChatWidget from './components/AiChatWidget';
+
 export default function App() {
     return (
         <CartProvider>
             <BrowserRouter>
-                <div className="min-h-screen bg-[#090a0f] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+                <div className="min-h-screen bg-[#06080f] text-slate-100 flex flex-col w-full selection:bg-cyan-500 selection:text-black">
                     <Navbar />
-                    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+                    <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
                         <Routes>
                             <Route path="/" element={<Dashboard />} />
                             <Route path="/catalogo" element={<Catalog />} />
@@ -23,20 +25,25 @@ export default function App() {
                         </Routes>
                     </main>
                     
-                    {/* Modern Sleek Footer matching screenshot */}
-                    <footer className="border-t border-[#1a1f2e] bg-[#08090d] text-xs text-slate-500 py-6 mt-auto">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    {/* Widget Flotante del Chat de IA con n8n */}
+                    <AiChatWidget />
+
+                    <footer className="border-t border-slate-800/80 bg-[#060810] text-xs text-slate-500 py-6 mt-auto w-full">
+                        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                <p>© 2026 TechStore Inc. Raycast-inspired developer hardware · Laboratorio #2 (Caso 5)</p>
+                                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                                <p>© 2026 CyberForge Hardware Inc. Raycast-inspired developer hardware · Laboratorio #2 (Caso 5)</p>
                             </div>
                             <div className="flex items-center gap-6">
                                 <span className="hover:text-slate-400 cursor-pointer transition">Privacidad</span>
                                 <span className="hover:text-slate-400 cursor-pointer transition">Términos</span>
-                                <span className="hover:text-indigo-400 cursor-pointer transition flex items-center gap-1 font-medium">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
-                                    Soporte IA
-                                </span>
+                                <button
+                                    onClick={() => window.dispatchEvent(new CustomEvent('abrir-chat-ia'))}
+                                    className="hover:text-cyan-400 cursor-pointer transition flex items-center gap-1.5 font-bold text-indigo-400"
+                                >
+                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                                    Soporte IA n8n
+                                </button>
                             </div>
                         </div>
                     </footer>

@@ -1,0 +1,13 @@
+{
+  "name": "tienda-online-root",
+  "version": "1.0.0",
+  "description": "Laboratorio #2 Caso 5: CyberForge Hardware",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build"
+  },
+  "dependencies": {
+    "pngjs": "^7.0.0"
+  }
+}

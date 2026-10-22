@@ -4,6 +4,7 @@ const cuponesRoutes = require('./cuponesRoutes');
 const ordenesRoutes = require('./ordenesRoutes');
 const resumenRoutes = require('./resumenRoutes');
 const clientesRoutes = require('./clientesRoutes');
+const iaRoutes = require('./iaRoutes');
 
 /**
  * Enrutador principal de la API. Se monta en /api desde app.js.
@@ -20,5 +21,6 @@ router.use('/cupones', cuponesRoutes);
 router.use('/ordenes', ordenesRoutes);
 router.use('/resumen', resumenRoutes);
 router.use('/clientes', clientesRoutes);
+router.use('/ia', iaRoutes);
 
 module.exports = router;

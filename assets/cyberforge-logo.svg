@@ -1,0 +1,62 @@
+<svg viewBox="0 0 400 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cyberHex" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f0ff" />
+      <stop offset="50%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#c026d3" />
+    </linearGradient>
+    <linearGradient id="cyberBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+    <linearGradient id="textCyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="textPurple" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+    <filter id="glowHex" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur1" />
+      <feGaussianBlur stdDeviation="16" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Hexagonal Shield Outer Glow & Body -->
+  <polygon points="200,20 370,118 370,314 200,412 30,314 30,118" 
+           stroke="url(#cyberHex)" stroke-width="12" fill="#070a14" filter="url(#glowHex)" />
+
+  <!-- Inner Concentric Hexagon Layer -->
+  <polygon points="200,50 340,131 340,295 200,376 60,295 60,131" 
+           stroke="#1e293b" stroke-width="4" fill="none" stroke-dasharray="10 6" />
+
+  <!-- Radiating Cybernetic Circuit Traces -->
+  <g stroke-linecap="round">
+    <!-- Top-Left Traces -->
+    <path d="M90 140 L130 140 L160 170" stroke="#00f0ff" stroke-width="3.5" opacity="0.85" />
+    <circle cx="90" cy="140" r="4.5" fill="#00f0ff" />
+    <path d="M75 190 L120 190 L140 210" stroke="#00f0ff" stroke-width="3" opacity="0.75" />
+    <circle cx="75" cy="190" r="4" fill="#00f0ff" />
+    <path d="M100 270 L140 270 L165 245" stroke="#00f0ff" stroke-width="3.5" opacity="0.85" />
+    <circle cx="100" cy="270" r="4.5" fill="#00f0ff" />
+
+    <!-- Top-Right & Bottom-Right Traces (Magenta/Purple) -->
+    <path d="M310 140 L270 140 L240 170" stroke="#c026d3" stroke-width="3.5" opacity="0.85" />
+    <circle cx="310" cy="140" r="4.5" fill="#c026d3" />
+    <path d="M325 190 L280 190 L260 210" stroke="#c026d3" stroke-width="3" opacity="0.75" />
+    <circle cx="325" cy="190" r="4" fill="#c026d3" />
+    <path d="M300 270 L260 270 L235 245" stroke="#c026d3" stroke-width="3.5" opacity="0.85" />
+    <circle cx="300" cy="270" r="4.5" fill="#c026d3" />
+  </g>
+
+  <!-- Central Faceted Lightning Bolt with Intense Luminous Glow -->
+  <polygon points="215,70 135,210 195,210 175,350 265,190 205,190" 
+           fill="url(#cyberBolt)" filter="url(#glowHex)" />
+</svg>

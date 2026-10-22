@@ -153,11 +153,11 @@
 
 ## 5. Criterios de Aceptación para la Entrega
 
-- [ ] Script `schema.sql` y `seeds.sql` ejecutan sin errores y cargan datos de prueba consistentes.
-- [ ] Todas las operaciones de modificación múltiple utilizan `BEGIN`, `COMMIT` y `ROLLBACK`.
-- [ ] La colección de Postman/Thunder Client incluye ejecuciones exitosas y casos de prueba que provocan errores `400`, `404` y `409`.
-- [ ] El frontend cuenta con al menos 4 vistas activas navegables mediante React Router (`/`, `/catalogo`, `/producto/:id`, `/checkout`).
-- [ ] El custom hook implementado maneja reactivamente los estados `data`, `loading` y `error`.
-- [ ] El formulario de Checkout captura las respuestas de error `409` del backend y las muestra al usuario sin refrescar la página.
-- [ ] El workflow de n8n procesa la solicitud mediante webhook y retorna la respuesta con `{ ok, data, error }`.
-- [ ] Archivo `BITACORA_IA.md` documenta al menos 5 interacciones con prompt, respuesta de la IA y corrección manual aplicada.
+- [x] Script `schema.sql` y `seeds.sql` ejecutan sin errores y cargan datos de prueba consistentes.
+- [x] Todas las operaciones de modificación múltiple utilizan `BEGIN`, `COMMIT` y `ROLLBACK`.
+- [x] La colección de Postman/Thunder Client incluye ejecuciones exitosas y casos de prueba que provocan errores `400`, `404` y `409`.
+- [x] El frontend cuenta con al menos 4 vistas activas navegables mediante React Router (`/`, `/catalogo`, `/producto/:id`, `/checkout`).
+- [x] El custom hook implementado maneja reactivamente los estados `data`, `loading` y `error`.
+- [x] El formulario de Checkout captura las respuestas de error `409` del backend y las muestra al usuario sin refrescar la página.
+- [x] El workflow de n8n procesa la solicitud mediante webhook y retorna la respuesta con `{ ok, data, error }`.
+- [x] Archivo `BITACORA_IA.md` documenta al menos 5 interacciones con prompt, respuesta de la IA y corrección manual aplicada.

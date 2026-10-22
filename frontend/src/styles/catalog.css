@@ -1,0 +1,203 @@
+/* =============================================================================
+   CYBERFORGE HARDWARE - ULTRA-PREMIUM CATALOG STYLES
+   ============================================================================= */
+
+.cf-catalog-hero {
+  position: relative;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(9, 13, 24, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  overflow: hidden;
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.6);
+}
+
+.cf-catalog-hero::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.12) 0%, transparent 70%);
+  filter: blur(35px);
+  pointer-events: none;
+}
+
+.cf-catalog-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -50px;
+  left: 20%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%);
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+/* Category Filter Chips Bar */
+.cf-cat-chips-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+}
+
+.cf-cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(11, 16, 29, 0.85);
+  color: #94a3b8;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cf-cat-chip:hover {
+  color: #ffffff;
+  background: rgba(18, 26, 46, 0.95);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.cf-cat-chip.active {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(99, 102, 241, 0.2) 100%);
+  color: #00f0ff;
+  border-color: rgba(0, 240, 255, 0.45);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+}
+
+.cf-cat-count {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #cbd5e1;
+  font-family: var(--cf-font-mono);
+}
+
+/* Search and Controls Bar */
+.cf-search-box {
+  position: relative;
+  flex: 1;
+  max-width: 24rem;
+}
+
+.cf-search-input {
+  width: 100%;
+  background: rgba(8, 12, 22, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.85rem;
+  padding: 0.65rem 1rem 0.65rem 2.5rem;
+  font-size: 0.8rem;
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.cf-search-input:focus {
+  outline: none;
+  border-color: #00f0ff;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+  background: rgba(11, 16, 30, 0.95);
+}
+
+/* Product Card Grid */
+.cf-catalog-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .cf-catalog-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .cf-catalog-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (min-width: 1280px) {
+  .cf-catalog-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Individual Product Card */
+.cf-card-product {
+  position: relative;
+  background: linear-gradient(145deg, rgba(14, 20, 36, 0.85) 0%, rgba(9, 13, 24, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
+}
+
+.cf-card-product::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.6), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cf-card-product:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 240, 255, 0.35);
+  box-shadow: 0 16px 35px -10px rgba(0, 240, 255, 0.15), 0 0 20px rgba(0, 240, 255, 0.08);
+}
+
+.cf-card-product:hover::before {
+  opacity: 1;
+}
+
+/* Card Visual Showcase Thumbnail */
+.cf-product-thumb {
+  position: relative;
+  width: 100%;
+  height: 11.5rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, #060913 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.cf-thumb-aura {
+  position: absolute;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, transparent 70%);
+  filter: blur(20px);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.cf-card-product:hover .cf-thumb-aura {
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.25) 0%, transparent 70%);
+  transform: scale(1.15);
+}

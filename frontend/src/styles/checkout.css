@@ -1,0 +1,78 @@
+/* =============================================================================
+   CHECKOUT VIEW STYLES - CYBERFORGE HARDWARE (IMAGE 2)
+   ============================================================================= */
+
+.cf-checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .cf-checkout-grid {
+    grid-template-columns: 7fr 5fr;
+  }
+}
+
+.cf-cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cf-cart-item:last-child {
+  border-bottom: none;
+}
+
+.cf-cart-thumb {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 0.75rem;
+  background: #090e1c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.cf-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+}
+
+.cf-summary-row span:last-child {
+  font-family: var(--cf-font-mono);
+}
+
+.cf-total-big {
+  font-size: 1.75rem;
+  font-weight: 800;
+  font-family: var(--cf-font-mono);
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  background: linear-gradient(to right, #ffffff, #a5f3fc, #c7d2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.cf-payment-badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

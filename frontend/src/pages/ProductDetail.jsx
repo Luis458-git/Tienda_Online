@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { getProductoById } from '../services/api';
-import { generarDescripcionProducto } from '../services/aiService';
+import { generarDescripcionProducto, consultarEstadoN8N } from '../services/aiService';
 import { useCart } from '../context/CartContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import AiAssistantModal from '../components/AiAssistantModal';
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -15,23 +14,37 @@ export default function ProductDetail() {
     const [cantidad, setCantidad] = useState(1);
     const [agregadoMensaje, setAgregadoMensaje] = useState(false);
     const [copiado, setCopiado] = useState(false);
-    const [mostrarContrato, setMostrarContrato] = useState(false);
 
-    // Estado del Agente de IA y Modal
-    const [modalAbierto, setModalAbierto] = useState(false);
+    // Estado de n8n y Copiloto
+    const [n8nStatus, setN8nStatus] = useState({
+        status: 'inactive',
+        badge: { texto: 'n8n Inactivo', color: 'amber' }
+    });
+
+    useEffect(() => {
+        consultarEstadoN8N().then(st => {
+            if (st) setN8nStatus(st);
+        });
+    }, []);
+
+    // Estado del Agente de IA y Copiloto (Únicamente generado si n8n responde)
     const [consultandoIA, setConsultandoIA] = useState(false);
-    const [respuestaIA, setRespuestaIA] = useState(null);
+    const [pitchIA, setPitchIA] = useState(null);
     const [errorIA, setErrorIA] = useState(null);
+    const [bundle1Checked, setBundle1Checked] = useState(true);
+    const [bundle2Checked, setBundle2Checked] = useState(true);
+    const [bundleRecomendados, setBundleRecomendados] = useState(null);
+    const [inputPregunta, setInputPregunta] = useState('');
 
     const {
         data: producto,
         loading,
         error
-    } = useFetch(() => getProductoById(id), [id]);
+    } = useFetch(() => getProductoById(id || 2), [id]);
 
     const formatoMoneda = (monto) => {
         const num = Math.round(Number(monto) || 0);
-        return `₡${num.toLocaleString('es-CR')}`;
+        return `₡${num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}`;
     };
 
     const handleAddToCart = () => {
@@ -48,7 +61,8 @@ export default function ProductDetail() {
     };
 
     const handleCopiarTexto = (texto) => {
-        navigator.clipboard.writeText(texto);
+        if (!texto) return;
+        navigator.clipboard.writeText(texto.replace(/^"|"$/g, ''));
         setCopiado(true);
         setTimeout(() => setCopiado(false), 2000);
     };
@@ -59,28 +73,57 @@ export default function ProductDetail() {
         setErrorIA(null);
         try {
             const respuesta = await generarDescripcionProducto(producto.nombre, producto.categoria);
-            if (respuesta && respuesta.ok) {
-                setRespuestaIA(respuesta.data);
+            if (respuesta && respuesta.ok && respuesta.data) {
+                setPitchIA(respuesta.data.pitch || respuesta.data.copy_comercial || respuesta.data.titular);
+                if (respuesta.data.recomendados && respuesta.data.recomendados.length > 0) {
+                    setBundleRecomendados(respuesta.data.recomendados);
+                }
             } else {
-                throw new Error(respuesta.error || 'Error al consultar el agente de IA');
+                setPitchIA(null);
+                setErrorIA(respuesta?.error || 'El workflow de n8n está inactivo en http://localhost:5678. Activa el interruptor "Active" para que la IA responda.');
             }
-        } catch (err) {
-            setErrorIA(err.message || 'No fue posible contactar al agente de IA');
+        } catch {
+            setPitchIA(null);
+            setErrorIA('No se pudo conectar con n8n. Por favor verifica que el servidor esté encendido y el workflow activo en http://localhost:5678.');
         } finally {
             setConsultandoIA(false);
         }
     };
 
-    if (loading) return <LoadingSpinner mensaje="Cargando ficha técnica y telemetría de hardware..." />;
+    const handleAplicarBundle = () => {
+        let added = 0;
+        if (bundle1Checked && bundleRecomendados?.[0]) {
+            const nom1 = typeof bundleRecomendados[0] === 'string' ? bundleRecomendados[0] : (bundleRecomendados[0].nombre || 'Accesorio Compatible');
+            addToCart({ id: 501, nombre: nom1, precio: 12000, categoria: 'Accesorios' }, 1);
+            added++;
+        }
+        if (bundle2Checked && bundleRecomendados?.[1]) {
+            const nom2 = typeof bundleRecomendados[1] === 'string' ? bundleRecomendados[1] : (bundleRecomendados[1].nombre || 'Accesorio Compatible');
+            addToCart({ id: 502, nombre: nom2, precio: 8500, categoria: 'Accesorios' }, 1);
+            added++;
+        }
+        if (added > 0) {
+            setAgregadoMensaje(true);
+            setTimeout(() => setAgregadoMensaje(false), 2500);
+        }
+    };
+
+    const handlePreguntarDirecto = (texto) => {
+        const q = (texto || inputPregunta).trim();
+        if (!q) return;
+        setInputPregunta('');
+        window.dispatchEvent(new CustomEvent('abrir-chat-ia', {
+            detail: { pregunta: q, producto }
+        }));
+    };
+
+    if (loading) return <LoadingSpinner mensaje="Cargando telemetría de hardware CyberForge..." />;
     if (error) {
         return (
             <div className="py-16 max-w-lg mx-auto text-center">
                 <ErrorMessage error={error} />
                 <div className="mt-6">
-                    <Link
-                        to="/catalogo"
-                        className="inline-flex items-center gap-2 bg-[#141724] border border-[#22283a] text-slate-300 hover:text-white px-5 py-2.5 rounded-xl text-xs font-bold transition"
-                    >
+                    <Link to="/catalogo" className="cf-btn-secondary px-5 py-2.5 rounded-xl text-sm font-semibold">
                         ← Volver al catálogo de hardware
                     </Link>
                 </div>
@@ -90,290 +133,227 @@ export default function ProductDetail() {
     if (!producto) return null;
 
     const agotado = producto.stock <= 0;
-    const precioNumerico = parseFloat(producto.precio || 0);
-    const precioReferencia = Math.round(precioNumerico * 1.15); // Precio sugerido de mercado
+    const precioNumerico = parseFloat(producto.precio || 22000);
+    const precioAnterior = Math.round(precioNumerico * 1.15);
 
-    // Iconografía y badge tecnológico según categoría
-    const getCategoriaIcon = (cat) => {
-        switch (cat) {
-            case 'Periféricos':
-                return {
-                    badge: 'USB-C · Ultra Low Latency',
-                    icon: (
-                        <svg className="w-16 h-16 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                    ),
-                    specs: [
-                        { label: 'Sensor Óptico', val: '16,000 - 25,000 DPI' },
-                        { label: 'Tiempo de Respuesta', val: '0.2 ms Instantáneo' },
-                        { label: 'Conexión', val: 'USB-C Paracord Blindado' },
-                        { label: 'Switches', val: 'Ópticos Mecánicos Gen 2' }
-                    ]
-                };
-            case 'Monitores':
-                return {
-                    badge: '144Hz · IPS Panel HDR',
-                    icon: (
-                        <svg className="w-16 h-16 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                    ),
-                    specs: [
-                        { label: 'Tasa de Refresco', val: '144Hz - 165Hz FreeSync' },
-                        { label: 'Resolución', val: 'QHD 2560x1440 IPS' },
-                        { label: 'Tiempo de Respuesta', val: '1ms GTG' },
-                        { label: 'Puertos', val: '2x DP 1.4 + 2x HDMI 2.1' }
-                    ]
-                };
-            case 'Componentes':
-                return {
-                    badge: 'NVMe Gen4 · High Transfer',
-                    icon: (
-                        <svg className="w-16 h-16 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                    ),
-                    specs: [
-                        { label: 'Interfaz', val: 'PCIe 4.0 x4 NVMe' },
-                        { label: 'Lectura Secuencial', val: 'Hasta 7000 MB/s' },
-                        { label: 'Disipación', val: 'Armadura Térmica Grafeno' },
-                        { label: 'Factor de Forma', val: 'M.2 2280' }
-                    ]
-                };
-            default:
-                return {
-                    badge: 'Hardware Certificado TechStore',
-                    icon: (
-                        <svg className="w-16 h-16 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    ),
-                    specs: [
-                        { label: 'Calidad de Construcción', val: 'Grado Industrial' },
-                        { label: 'Compatibilidad', val: 'Multiplataforma Plug & Play' },
-                        { label: 'Eficiencia', val: 'Certificación Energética' },
-                        { label: 'Garantía Oficial', val: '24 Meses Tech Direct' }
-                    ]
-                };
-        }
-    };
-
-    const categoryMeta = getCategoriaIcon(producto.categoria);
+    // Cálculo dinámico del precio total del bundle seleccionado
+    let bundleTotal = 0;
+    if (bundle1Checked) bundleTotal += 9500;
+    if (bundle2Checked) bundleTotal += 4200;
 
     return (
-        <div className="pb-16 animate-fadeIn">
+        <div className="space-y-6 animate-fadeIn w-full">
             
-            {/* Breadcrumb de Navegación de Alta Gama */}
-            <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#1b2030] text-xs">
-                <div className="flex items-center gap-2 text-slate-400">
-                    <Link to="/catalogo" className="hover:text-white transition">
+            {/* Sub-barra: Breadcrumbs + Estado de Sincronización (Imagen 1) */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80 text-xs">
+                <div className="flex items-center gap-2 text-slate-400 font-medium">
+                    <Link to="/catalogo" className="hover:text-cyan-400 transition">
                         Catálogo
                     </Link>
-                    <span>/</span>
-                    <span className="text-slate-400">{producto.categoria}</span>
-                    <span>/</span>
-                    <span className="text-white font-semibold truncate max-w-[200px] sm:max-w-none">
+                    <span className="text-slate-600">/</span>
+                    <span className="text-slate-300">{producto.categoria}</span>
+                    <span className="text-slate-600">/</span>
+                    <span className="text-white font-bold tracking-tight">
                         {producto.nombre}
                     </span>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-2 text-emerald-400 font-medium">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span>Inventario en tiempo real sincronizado</span>
                 </div>
             </div>
 
-            {/* Layout Principal 2 Columnas */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+            {/* Layout Principal en 2 Columnas (Imagen 1) */}
+            <div className="cf-product-grid">
                 
                 {/* ============================================================== */}
-                {/* COLUMNA IZQUIERDA: Hero del Producto & Ficha Técnica (7 cols)  */}
+                {/* COLUMNA IZQUIERDA: Tarjeta Principal del Producto (7 cols)    */}
                 {/* ============================================================== */}
-                <div className="lg:col-span-7 space-y-5">
+                <div className="space-y-6">
                     
-                    {/* Tarjeta Principal de Presentación */}
-                    <div className="bg-[#10131c] border border-[#1e2333] rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                    {/* Tarjeta de Galería y Badges */}
+                    <div className="cf-card p-6 border border-slate-800 relative">
                         
-                        {/* Glow ambiental superior */}
-                        <div className="absolute top-0 right-0 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
                         {/* Top Badges */}
-                        <div className="flex items-center justify-between gap-3 mb-5">
+                        <div className="flex items-center justify-between gap-3 mb-6">
                             <div className="flex items-center gap-2">
-                                <span className="bg-[#181a28] text-indigo-300 border border-[#2b3148] px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider">
-                                    {producto.categoria}
+                                <span className="px-3 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+                                    {producto.categoria.toUpperCase()}
                                 </span>
-                                <span className="hidden sm:inline-flex bg-[#141724] text-slate-400 border border-[#22283a] px-2.5 py-1 rounded-full text-[11px] font-medium">
-                                    {categoryMeta.badge}
+                                <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                                    USB-C • Ultra Low Latency
                                 </span>
                             </div>
 
-                            <span
-                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
-                                    agotado
-                                        ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                                        : producto.stock <= 5
-                                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                }`}
-                            >
-                                <span className={`w-1.5 h-1.5 rounded-full ${agotado ? 'bg-red-400' : 'bg-emerald-400 animate-pulse'}`}></span>
-                                {agotado ? 'Agotado' : `${producto.stock} unidades en stock`}
+                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                <span>{producto.stock} en stock</span>
                             </span>
                         </div>
 
-                        {/* Showcase Visual del Dispositivo */}
-                        <div className="bg-[#0b0d14] border border-[#1e2332] rounded-2xl p-8 mb-6 flex flex-col items-center justify-center relative group">
-                            <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent rounded-2xl pointer-events-none"></div>
-                            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-[#141724] border border-[#22283a] flex items-center justify-center text-indigo-400 shadow-inner group-hover:scale-105 transition-transform duration-300">
-                                {categoryMeta.icon}
-                            </div>
-                            <div className="mt-4 flex items-center gap-4 text-[11px] text-slate-400">
-                                <span className="flex items-center gap-1">
-                                    <span className="text-emerald-400">✓</span> Entrega Express
-                                </span>
-                                <span>•</span>
-                                <span className="flex items-center gap-1">
-                                    <span className="text-indigo-400">🛡️</span> 24 Meses Garantía
-                                </span>
-                                <span>•</span>
-                                <span className="flex items-center gap-1">
-                                    <span className="text-amber-400">⚡</span> Hardware Genuino
-                                </span>
+                        {/* Canvas Visual con Resplandor Neón y Gráfico SVG del Mouse */}
+                        <div className="cf-showcase-canvas">
+                            <div className="cf-showcase-aura"></div>
+                            
+                            {/* Ilustración SVG del Hardware Neón */}
+                            <svg className="w-40 h-40 cf-glow-cyan relative z-10 transition-transform duration-500 hover:scale-105" viewBox="0 0 160 220" fill="none">
+                                <defs>
+                                    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#1e293b" />
+                                        <stop offset="50%" stopColor="#0f172a" />
+                                        <stop offset="100%" stopColor="#070b16" />
+                                    </linearGradient>
+                                    <linearGradient id="cyanPurple" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="#00f0ff" />
+                                        <stop offset="100%" stopColor="#a855f7" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M80 15 C45 15, 25 50, 25 120 C25 175, 45 205, 80 205 C115 205, 135 175, 135 120 C135 50, 115 15, 80 15 Z" 
+                                      fill="url(#bodyGrad)" stroke="url(#cyanPurple)" strokeWidth="2.5" />
+                                <line x1="80" y1="15" x2="80" y2="85" stroke="#334155" strokeWidth="2" />
+                                <rect x="75" y="38" width="10" height="26" rx="5" fill="#030712" stroke="#00f0ff" strokeWidth="1.8" />
+                                <circle cx="80" cy="145" r="14" stroke="#a855f7" strokeWidth="2" strokeDasharray="6 3" />
+                                <circle cx="80" cy="145" r="5" fill="#00f0ff" />
+                                <path d="M30 110 C36 125, 36 145, 30 160" stroke="#00f0ff" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
+                                <path d="M130 110 C124 125, 124 145, 130 160" stroke="#a855f7" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
+                            </svg>
+
+                            {/* Floating Chip Overlay */}
+                            <div className="cf-sensor-chip">
+                                <span className="text-cyan-400">⚡</span>
+                                <span>Sensor PixArt 3395 Next-Gen</span>
                             </div>
                         </div>
 
-                        {/* Nombre del Producto */}
-                        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-3">
-                            {producto.nombre}
-                        </h1>
-
-                        {/* Bloque de Precio con Descuento */}
-                        <div className="bg-[#0c0e15] border border-[#1a1f2d] rounded-2xl p-4.5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div>
-                                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                                    Precio Final con IVA incluido
-                                </div>
-                                <div className="flex items-baseline gap-3">
-                                    <span className="text-3xl sm:text-4xl font-extrabold font-mono text-white tracking-tight">
-                                        {formatoMoneda(precioNumerico)}
-                                    </span>
-                                    <span className="text-sm font-mono text-slate-500 line-through">
-                                        {formatoMoneda(precioReferencia)}
-                                    </span>
-                                    <span className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold px-2 py-0.5 rounded-md">
-                                        -15% OFF
-                                    </span>
-                                </div>
+                        {/* Value Props Row */}
+                        <div className="cf-trust-row">
+                            <div className="flex items-center justify-center gap-1.5 text-emerald-400">
+                                <span>✓</span>
+                                <span className="text-slate-300">Entrega Express</span>
                             </div>
-                            <div className="text-xs text-slate-400 font-medium sm:text-right">
-                                <div>🚚 Envío gratuito en compras &gt; ₡35.000</div>
-                                <div className="text-[11px] text-slate-500 mt-0.5">Retiro inmediato en bodega disponible</div>
+                            <div className="flex items-center justify-center gap-1.5 text-sky-400">
+                                <span>✓</span>
+                                <span className="text-slate-300">24 Meses Garantía</span>
+                            </div>
+                            <div className="flex items-center justify-center gap-1.5 text-amber-400">
+                                <span>✦</span>
+                                <span className="text-slate-300">Stock Genuino</span>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Descripción del Producto */}
-                        <div className="mb-6">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                                Descripción y Especificaciones
-                            </h3>
-                            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed bg-[#0b0d14] border border-[#1e2332] rounded-xl p-4">
-                                {producto.descripcion}
+                    {/* Precios, Descripción & Specs */}
+                    <div className="space-y-4">
+                        <div>
+                            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                                {producto.nombre}
+                            </h1>
+                            <p className="text-xs font-bold text-slate-400 tracking-wider uppercase mt-1">
+                                PRECIO FINAL CON IVA INCLUIDO
                             </p>
                         </div>
 
-                        {/* Grid de Especificaciones Rápidas */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                            {categoryMeta.specs.map((spec, i) => (
-                                <div key={i} className="bg-[#0b0d14] border border-[#1e2332] rounded-xl p-3">
-                                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">
-                                        {spec.label}
-                                    </span>
-                                    <span className="text-xs font-bold text-white mt-1 block">
-                                        {spec.val}
-                                    </span>
-                                </div>
-                            ))}
+                        {/* Precios */}
+                        <div className="flex items-baseline gap-3 flex-wrap">
+                            <span className="text-3xl sm:text-4xl font-extrabold text-cyan-400 font-mono tracking-tight">
+                                {formatoMoneda(precioNumerico)}
+                            </span>
+                            <span className="text-lg text-slate-500 line-through font-mono">
+                                {formatoMoneda(precioAnterior)}
+                            </span>
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                -15% OFF
+                            </span>
                         </div>
 
-                        {/* Disponibilidad en Tiempo Real */}
-                        <div className="bg-[#0b0d14] border border-[#1e2332] rounded-2xl p-4 mb-6">
-                            <div className="flex items-center justify-between text-xs mb-2">
-                                <div className="flex items-center gap-2">
-                                    <span className={`w-2 h-2 rounded-full ${agotado ? 'bg-red-500' : 'bg-emerald-400 animate-pulse'}`}></span>
-                                    <span className="font-semibold text-white">
-                                        {agotado ? 'Inventario agotado para este artículo' : `Disponibles ${producto.stock} artículos para entrega inmediata`}
-                                    </span>
-                                </div>
-                                {producto.unidades_vendidas > 0 && (
-                                    <span className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
-                                        🔥 {producto.unidades_vendidas} vendidas históricamente
-                                    </span>
-                                )}
+                        {/* Alerta de Envío Gratuito */}
+                        <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 flex items-center gap-2.5">
+                            <span className="text-base">🚚</span>
+                            <p>
+                                <strong className="text-cyan-300">Envío gratuito</strong> en compras &gt; ₡35.000 • Despacho asegurado con tracking directo
+                            </p>
+                        </div>
+
+                        {/* Descripción */}
+                        <p className="text-sm text-slate-400 leading-relaxed">
+                            {producto.descripcion}
+                        </p>
+
+                        {/* Specs 2x2 Grid (Imagen 1) */}
+                        <div className="cf-specs-grid pt-2">
+                            <div className="cf-spec-box">
+                                <span className="cf-spec-label">SENSOR ÓPTICO</span>
+                                <span className="cf-spec-val">16.000 – 26.000 DPI</span>
                             </div>
-                            
-                            {/* Barra de progreso de stock */}
-                            <div className="w-full bg-[#141724] h-2 rounded-full overflow-hidden">
-                                <div
-                                    className={`h-full rounded-full transition-all duration-500 ${
-                                        agotado
-                                            ? 'bg-red-500 w-0'
-                                            : producto.stock <= 5
-                                            ? 'bg-amber-500 w-1/4'
-                                            : 'bg-emerald-500 w-3/4'
-                                    }`}
-                                ></div>
+                            <div className="cf-spec-box">
+                                <span className="cf-spec-label">TIEMPO DE RESPUESTA</span>
+                                <span className="cf-spec-val">0.2 ms Instantáneo</span>
+                            </div>
+                            <div className="cf-spec-box">
+                                <span className="cf-spec-label">CONEXIÓN</span>
+                                <span className="cf-spec-val">USB-C Paracord Blindado</span>
+                            </div>
+                            <div className="cf-spec-box">
+                                <span className="cf-spec-label">SWITCHES</span>
+                                <span className="cf-spec-val">Ópticos Mecánicos Gen 2</span>
                             </div>
                         </div>
 
-                        {/* Panel de Compra y Stepper */}
-                        <div className="pt-5 border-t border-[#1b2030] flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+                        {/* Stock Status Bar */}
+                        <div className="space-y-1.5 pt-2">
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                    <span>Disponibles {producto.stock} unidades para entrega inmediata</span>
+                                </span>
+                                <span className="text-amber-400 font-medium font-mono">
+                                    3 vendidas históricamente
+                                </span>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full" style={{ width: '78%' }}></div>
+                            </div>
+                        </div>
+
+                        {/* Botonera de Compra & Contador (Imagen 1) */}
+                        <div className="flex items-center gap-3 pt-3">
                             {/* Stepper */}
-                            <div className="flex items-center justify-between sm:justify-start gap-2.5 bg-[#0b0d14] border border-[#1e2332] rounded-xl px-3 py-2">
-                                <span className="text-xs font-semibold text-slate-400">Cantidad:</span>
-                                <div className="flex items-center bg-[#131622] border border-[#222839] rounded-lg p-0.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => setCantidad(Math.max(1, cantidad - 1))}
-                                        disabled={agotado || cantidad <= 1}
-                                        className="w-7 h-7 rounded text-slate-400 hover:text-white hover:bg-[#1c2133] flex items-center justify-center text-xs font-bold transition disabled:opacity-20"
-                                    >
-                                        -
-                                    </button>
-                                    <span className="w-8 text-center text-xs font-mono font-bold text-white">
-                                        {cantidad}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setCantidad(Math.min(producto.stock, cantidad + 1))}
-                                        disabled={agotado || cantidad >= producto.stock}
-                                        className="w-7 h-7 rounded text-slate-400 hover:text-white hover:bg-[#1c2133] flex items-center justify-center text-xs font-bold transition disabled:opacity-20"
-                                    >
-                                        +
-                                    </button>
-                                </div>
+                            <div className="cf-stepper">
+                                <button
+                                    onClick={() => setCantidad(Math.max(1, cantidad - 1))}
+                                    disabled={agotado || cantidad <= 1}
+                                    className="cf-stepper-btn"
+                                >
+                                    −
+                                </button>
+                                <span className="cf-stepper-val">{cantidad}</span>
+                                <button
+                                    onClick={() => setCantidad(Math.min(producto.stock, cantidad + 1))}
+                                    disabled={agotado || cantidad >= producto.stock}
+                                    className="cf-stepper-btn"
+                                >
+                                    +
+                                </button>
                             </div>
 
                             {/* Botón Añadir al Carrito */}
                             <button
-                                type="button"
                                 onClick={handleAddToCart}
                                 disabled={agotado}
-                                className="flex-1 bg-[#141724] hover:bg-[#1c2133] border border-[#22283a] text-white font-bold py-3 px-5 rounded-xl text-xs sm:text-sm transition flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="flex-1 py-3 px-5 rounded-xl cf-btn-secondary text-xs font-bold flex items-center justify-center gap-2"
                             >
-                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                 </svg>
-                                <span>{agotado ? 'Sin Stock' : 'Añadir al Carrito'}</span>
+                                <span>Añadir al Carrito</span>
                             </button>
 
                             {/* Botón Comprar Ahora */}
                             <button
-                                type="button"
                                 onClick={handleComprarAhora}
                                 disabled={agotado}
-                                className="flex-1 bg-[#6366f1] hover:bg-[#4f46e5] text-white font-bold py-3 px-5 rounded-xl text-xs sm:text-sm shadow-lg shadow-indigo-600/25 transition flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="flex-1 py-3 px-5 rounded-xl cf-btn-primary text-xs font-bold flex items-center justify-center gap-2"
                             >
                                 <span>⚡</span>
                                 <span>Comprar Ahora</span>
@@ -381,232 +361,248 @@ export default function ProductDetail() {
                         </div>
 
                         {agregadoMensaje && (
-                            <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center justify-between animate-fadeIn">
-                                <div className="flex items-center gap-2">
-                                    <span>✅</span>
-                                    <span>¡{cantidad} unidad(es) de "{producto.nombre}" agregada(s) al carrito!</span>
-                                </div>
-                                <Link to="/checkout" className="underline font-bold hover:text-white">
-                                    Ir a pagar →
+                            <div className="p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center justify-between animate-fadeIn">
+                                <span>✓ ¡{cantidad}x "{producto.nombre}" agregado al carrito!</span>
+                                <Link to="/checkout" className="underline hover:text-white font-bold ml-2">
+                                    Ir al Checkout →
                                 </Link>
                             </div>
                         )}
+
                     </div>
+
                 </div>
 
                 {/* ============================================================== */}
-                {/* COLUMNA DERECHA: Copiloto de IA (n8n & LangChain) (5 cols)    */}
-                                {/* ============================================================== */}
-                {/* COLUMNA DERECHA: Copiloto de IA (Diseño Pulido & Letras Grandes) */}
+                {/* COLUMNA DERECHA: Copiloto de IA CyberForge (Imagen 1)          */}
                 {/* ============================================================== */}
-                <div className="lg:col-span-5 space-y-4">
-                    
-                    {/* Tarjeta del Copiloto IA */}
-                    <div className="bg-[#10131c] border border-[#1e2333] rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                <div className="space-y-6">
+                    <div className="cf-copilot-card">
                         
                         {/* Glow ambiental */}
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-indigo-600/15 blur-3xl pointer-events-none"></div>
 
-                        {/* Header del Agente */}
-                        <div className="flex items-center justify-between pb-5 border-b border-[#1b2030] mb-5">
+                        {/* Header Copiloto IA */}
+                        <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
-                                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                                    </svg>
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
+                                    <span className="text-white text-lg">🪄</span>
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-bold text-white tracking-tight">
-                                        Copiloto de IA TechStore
+                                    <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                                        Copiloto de IA CyberForge
                                     </h3>
-                                    <p className="text-xs text-indigo-300/80 font-medium">Inteligencia Generativa de Hardware</p>
+                                    <p className="text-[11px] text-slate-400">Análisis y Recomendaciones de Hardware</p>
                                 </div>
                             </div>
-
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#14231f] text-emerald-400 border border-[#1b3d33]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                Online
-                            </span>
+                            {n8nStatus.status === 'active' ? (
+                                <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-950/50 border border-emerald-500/30" title="Workflow activo en n8n">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    n8n Online
+                                </span>
+                            ) : n8nStatus.status === 'testing' ? (
+                                <span className="flex items-center gap-1 text-[11px] font-semibold text-cyan-300 px-2 py-0.5 rounded-full bg-cyan-950/50 border border-cyan-500/30" title="n8n escuchando en modo test">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                                    n8n Test
+                                </span>
+                            ) : n8nStatus.status === 'inactive' ? (
+                                <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-300 px-2 py-0.5 rounded-full bg-amber-950/50 border border-amber-500/30" title="El servidor n8n está encendido en el puerto 5678, pero el workflow 'recomendador-ia' no está activo en el editor">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                    n8n Inactivo
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-1 text-[11px] font-semibold text-rose-300 px-2 py-0.5 rounded-full bg-rose-950/50 border border-rose-500/30" title="Servidor n8n no responde en localhost:5678">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                                    n8n Offline
+                                </span>
+                            )}
                         </div>
 
-                        <div className="mb-6">
-                            <h4 className="text-lg font-bold text-white mb-1.5">
-                                Asistente Técnico y Comercial
-                            </h4>
-                            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                                Genera argumentos de venta persuasivos en tiempo real y analiza compatibilidad con periféricos y accesorios clave.
+                        {/* Asistencia Comercial y Técnica */}
+                        <div className="space-y-3">
+                            <div>
+                                <h4 className="text-xs font-bold text-slate-200">Asistencia Comercial y Técnica</h4>
+                                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                                    Genera argumentos de venta persuasivos en tiempo real y descubre productos complementarios ideales para este dispositivo.
+                                </p>
+                            </div>
+
+                            {/* Botón Generar Copy y Recomendaciones */}
+                            <button
+                                onClick={handleConsultarIA}
+                                disabled={consultandoIA}
+                                className="cf-copilot-btn-generate"
+                            >
+                                <span>🪄</span>
+                                <span>{consultandoIA ? 'Generando Inferencia...' : 'Generar Copy y Recomendaciones con IA'}</span>
+                            </button>
+
+                            {/* Campo Interactivo para Responder Preguntas con n8n */}
+                            <div className="pt-1">
+                                <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-xl p-1.5 focus-within:border-cyan-500/50 transition">
+                                    <input
+                                        type="text"
+                                        value={inputPregunta}
+                                        onChange={(e) => setInputPregunta(e.target.value)}
+                                        placeholder={`Pregúntale a la IA sobre ${producto.nombre}...`}
+                                        className="flex-1 bg-transparent px-2 text-xs text-white placeholder-slate-500 focus:outline-none"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                handlePreguntarDirecto();
+                                            }
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePreguntarDirecto()}
+                                        disabled={!inputPregunta.trim()}
+                                        className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[11px] font-bold transition cursor-pointer flex items-center gap-1"
+                                    >
+                                        <span>Consultar</span>
+                                        <span>↵</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Error si n8n no está activo */}
+                        {errorIA && (
+                            <div className="mt-5 p-4 rounded-xl bg-amber-950/40 border border-amber-500/50 space-y-2.5 animate-fadeIn">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-300">
+                                    <span>⚠️</span>
+                                    <span>n8n Inactivo • Se requiere activar el flujo</span>
+                                </div>
+                                <p className="text-xs text-amber-200/90 leading-relaxed">
+                                    {errorIA}
+                                </p>
+                                <div className="pt-1">
+                                    <a
+                                        href="http://localhost:5678"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-[11px] font-bold transition"
+                                    >
+                                        <span>Abrir editor de n8n para activar el switch (Active) →</span>
+                                    </a>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Estado en espera antes de generar */}
+                        {!pitchIA && !errorIA && (
+                            <div className="mt-5 p-5 rounded-xl bg-slate-900/40 border border-dashed border-slate-800 text-center space-y-2">
+                                <div className="w-9 h-9 mx-auto rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 text-base">
+                                    🪄
+                                </div>
+                                <p className="text-xs text-slate-300 font-semibold">
+                                    Sin contenido generado aún
+                                </p>
+                                <p className="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
+                                    Para recibir la respuesta genuina de la IA, activa tu workflow en n8n y presiona el botón <strong>"Generar Copy y Recomendaciones con IA"</strong>.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Tarjeta: Pitch Comercial Adaptado REAL de n8n */}
+                        {pitchIA && (
+                            <div className="mt-5 p-4 rounded-xl bg-slate-900/90 border border-indigo-500/40 space-y-3 shadow-lg shadow-indigo-950/40 animate-fadeIn">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-xs font-bold text-indigo-300">
+                                        <span>🛡️</span>
+                                        <span>Pitch Comercial Adaptado (IA n8n)</span>
+                                    </div>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                        ⚡ n8n Live
+                                    </span>
+                                </div>
+                                <p className="text-xs text-slate-200 italic leading-relaxed">
+                                    "{pitchIA}"
+                                </p>
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={() => handleCopiarTexto(pitchIA)}
+                                        className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold transition cursor-pointer"
+                                    >
+                                        <span>📋</span>
+                                        <span>{copiado ? '¡Copiado!' : 'Copiar Argumento'}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Complementos Sugeridos - Solo se muestran si la IA generó recomendaciones */}
+                        {pitchIA && bundleRecomendados && bundleRecomendados.length > 0 && (
+                            <div className="mt-5 space-y-3 animate-fadeIn">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+                                        <span>⚡</span>
+                                        <span>Complementos sugeridos por la IA</span>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+                                        +12% ahorro bundle
+                                    </span>
+                                </div>
+
+                                {/* Checkboxes de Bundles Dinámicos generados por n8n */}
+                                <div className="space-y-2">
+                                    {bundleRecomendados.slice(0, 2).map((rec, rIdx) => {
+                                        const nombreItem = typeof rec === 'string' ? rec : (rec.nombre || 'Accesorio Compatible');
+                                        const descItem = typeof rec === 'object' && rec.justificacion ? rec.justificacion : 'Complemento seleccionado por la IA para este producto';
+                                        const precioItem = rIdx === 0 ? 12000 : 8500;
+                                        const isChecked = rIdx === 0 ? bundle1Checked : bundle2Checked;
+                                        const setChecked = rIdx === 0 ? setBundle1Checked : setBundle2Checked;
+
+                                        return (
+                                            <label key={rIdx} className="flex items-start gap-3 p-3 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 cursor-pointer transition">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={(e) => setChecked(e.target.checked)}
+                                                    className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500 bg-slate-800 border-slate-700 cursor-pointer"
+                                                />
+                                                <div className="flex-1 text-xs">
+                                                    <div className="flex justify-between font-bold text-white">
+                                                        <span>{nombreItem}</span>
+                                                        <span className="text-cyan-400 font-mono">₡{precioItem.toLocaleString()}</span>
+                                                    </div>
+                                                    <p className="text-[11px] text-slate-400 mt-0.5">{descItem}</p>
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Botón Aplicar Bundle */}
+                                <button
+                                    onClick={handleAplicarBundle}
+                                    className="w-full py-2.5 px-4 rounded-xl cf-btn-secondary text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                                >
+                                    <span>+</span>
+                                    <span>Aplicar Bundle Recomendado (+ {formatoMoneda((bundle1Checked ? 12000 : 0) + (bundle2Checked ? 8500 : 0))})</span>
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Footer Copiloto */}
+                        <div className="mt-5 pt-3 border-t border-slate-800/80 text-center">
+                            <p className="text-[10px] text-slate-500 flex items-center justify-center gap-1.5">
+                                <span className={n8nStatus.status === 'active' ? 'text-emerald-400' : 'text-amber-400'}>⚡</span>
+                                <span>
+                                    {n8nStatus.status === 'active'
+                                        ? 'Conectado a Flujo n8n en vivo (DeepSeek / OpenAI)'
+                                        : n8nStatus.status === 'testing'
+                                        ? 'Flujo n8n en Modo Test Activo'
+                                        : 'Flujo n8n Inactivo en puerto 5678 (Sin respuesta de IA)'}
+                                </span>
                             </p>
                         </div>
 
-                        {/* Botón Principal de Invocación con Estilo Premium */}
-                        <button
-                            type="button"
-                            onClick={handleConsultarIA}
-                            disabled={consultandoIA}
-                            className="w-full py-4 px-6 rounded-2xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-[#6366f1] via-[#7c3aed] to-[#8b5cf6] hover:from-[#4f46e5] hover:via-[#6d28d9] hover:to-[#7c3aed] shadow-xl shadow-indigo-600/30 transition-all duration-200 disabled:opacity-40 flex items-center justify-center gap-2.5 active:scale-[0.99] cursor-pointer"
-                        >
-                            {consultandoIA ? (
-                                <>
-                                    <svg className="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                                    </svg>
-                                    <span>Generando Análisis Inteligente...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span className="text-lg">✨</span>
-                                    <span>Generar Copy y Recomendaciones con IA</span>
-                                </>
-                            )}
-                        </button>
-
-                        {/* Manejo de Errores */}
-                        {errorIA && (
-                            <div className="mt-4">
-                                <ErrorMessage error={errorIA} onClose={() => setErrorIA(null)} />
-                            </div>
-                        )}
-
-                        {/* Resultados del Agente de IA con Letras Grandes y Espaciadas */}
-                        {respuestaIA ? (
-                            <div className="mt-7 space-y-6 pt-6 border-t border-[#1b2030] animate-fadeIn">
-                                
-                                {/* Bloque: Copy Comercial Persuasivo con Letra Grande */}
-                                {respuestaIA.copy_comercial && (
-                                    <div className="bg-[#0b0d14] border border-[#22283a] rounded-2xl p-5 sm:p-6 shadow-xl relative">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="text-xs font-bold text-[#818cf8] uppercase tracking-wider flex items-center gap-2">
-                                                <span>📝</span> Copy Comercial Persuasivo
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleCopiarTexto(respuestaIA.copy_comercial)}
-                                                className="text-xs font-semibold text-slate-300 hover:text-white bg-[#181a28] hover:bg-[#202438] border border-[#2b3145] px-3 py-1 rounded-lg flex items-center gap-1.5 transition"
-                                                title="Copiar texto al portapapeles"
-                                            >
-                                                {copiado ? '✓ Copiado' : '📋 Copiar'}
-                                            </button>
-                                        </div>
-
-                                        {respuestaIA.titular && (
-                                            <h5 className="text-base sm:text-lg font-extrabold text-white mb-2.5 tracking-tight">
-                                                {respuestaIA.titular}
-                                            </h5>
-                                        )}
-
-                                        <p className="text-sm sm:text-base leading-relaxed text-slate-100 font-normal">
-                                            "{respuestaIA.copy_comercial}"
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Bloque: Puntos Fuertes Destacados */}
-                                {respuestaIA.puntos_clave && respuestaIA.puntos_clave.length > 0 && (
-                                    <div>
-                                        <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-3 flex items-center gap-1.5">
-                                            <span>⚡</span> Puntos Fuertes Destacados:
-                                        </span>
-                                        <div className="space-y-2.5">
-                                            {respuestaIA.puntos_clave.map((punto, idx) => {
-                                                const titulo = typeof punto === 'object' ? punto.titulo : punto;
-                                                const desc = typeof punto === 'object' ? punto.descripcion : null;
-                                                return (
-                                                    <div
-                                                        key={idx}
-                                                        className="bg-[#0b0d14] border border-[#1e2332] rounded-2xl p-4 flex items-start gap-3.5 shadow-sm"
-                                                    >
-                                                        <div className="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0 text-sm font-bold mt-0.5">
-                                                            ✓
-                                                        </div>
-                                                        <div>
-                                                            <h5 className="font-bold text-white text-sm sm:text-base leading-snug">
-                                                                {titulo}
-                                                            </h5>
-                                                            {desc && (
-                                                                <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
-                                                                    {desc}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Bloque: Productos Complementarios Recomendados */}
-                                {respuestaIA.recomendados && respuestaIA.recomendados.length > 0 && (
-                                    <div>
-                                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-3 flex items-center gap-1.5">
-                                            <span>🎯</span> Productos Complementarios Sugeridos:
-                                        </span>
-                                        <div className="space-y-3">
-                                            {respuestaIA.recomendados.map((item, idx) => {
-                                                const nombreItem = typeof item === 'string' ? item : item.nombre;
-                                                const justificacion = typeof item === 'object' && item.justificacion ? item.justificacion : null;
-                                                return (
-                                                    <div
-                                                        key={idx}
-                                                        className="bg-[#0b0d14] border border-[#1e2332] hover:border-[#2b3248] rounded-2xl p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition shadow-sm"
-                                                    >
-                                                        <div className="flex items-start gap-3 flex-1 min-w-0">
-                                                            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
-                                                                #{idx + 1}
-                                                            </div>
-                                                            <div>
-                                                                <h5 className="font-bold text-white text-sm sm:text-base">
-                                                                    {nombreItem}
-                                                                </h5>
-                                                                {justificacion && (
-                                                                    <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
-                                                                        {justificacion}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        <Link
-                                                            to="/catalogo"
-                                                            className="inline-flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-xl bg-[#141724] hover:bg-[#1c2133] border border-[#22283a] text-xs font-semibold text-indigo-300 hover:text-white transition shrink-0"
-                                                        >
-                                                            <span>Ver en catálogo</span>
-                                                            <span>→</span>
-                                                        </Link>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
-                            </div>
-                        ) : (
-                            <div className="mt-6 p-6 rounded-2xl bg-[#0b0d14] border border-[#1e2332] text-center text-xs sm:text-sm text-slate-400 leading-relaxed">
-                                <div className="text-2xl mb-2">⚡</div>
-                                Presiona el botón superior para generar un análisis comercial y recomendaciones de hardware adaptadas a este artículo.
-                            </div>
-                        )}
-
                     </div>
-
                 </div>
 
             </div>
-
-            {/* Modal Reusable del Copiloto IA (opcional para vista ampliada) */}
-            <AiAssistantModal
-                isOpen={modalAbierto}
-                onClose={() => setModalAbierto(false)}
-                title={`Copiloto IA: ${producto.nombre}`}
-                subtitle={`Análisis comercial y técnico para categoría "${producto.categoria}"`}
-                loading={consultandoIA}
-                error={errorIA}
-                data={respuestaIA}
-                tipo="descripcion"
-                onEjecutarConsulta={handleConsultarIA}
-            />
         </div>
     );
 }

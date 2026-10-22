@@ -87,3 +87,21 @@
   1. **Tolerancia a Fallos y Modo Offline:** En `aiService.js` se agregó un motor heurístico de respaldo automático con timeout de 6 segundos. Si la instancia local de n8n no está activa o experimenta demoras de red, el frontend devuelve datos simulados de alta calidad respetando exactamente el mismo contrato JSON, permitiendo evaluar la interfaz de usuario y las dos capacidades sin bloqueos.
   2. **Sanitización de Salida del LLM:** En el nodo de formato de n8n (`Formatear Contrato Estricto`) se introdujo una expresión regular para limpiar bloques de código markdown tipo ` ```json ... ``` `, garantizando que `JSON.parse` nunca falle aun si el modelo incluye delimitadores de bloque.
   3. **Integración Dual en el Frontend:** Se conectó `AiAssistantModal` tanto en `ProductDetail.jsx` (Capacidad A: descripción técnica y comercial) como en `Checkout.jsx` (Capacidad B: diagnóstico y sugerencias de productos complementarios según los items en el carrito).
+
+---
+
+## Registro 6: Reto Extra - 5 Consultas SELECT con JOIN y Validación Integral del Modelo Relacional
+
+- **Fecha:** 2026-10-22
+- **Componente:** `Chaves_Luis_BaseDatos.sql`, `backend/database/consultas_extra.sql` y `backend/database/seeds.sql`
+- **Herramienta / Modelo:** Antigravity / Claude 3.5 Sonnet & GPT-4o
+- **Objetivo:** Cumplir con la sección de puntos extra (hasta 5 puntos adicionales) según la rúbrica del Trabajo de Extensión: diseñar 5 consultas `SELECT` con `JOIN` que demuestren que las relaciones del DER (1:N, N:M con tabla asociativa) funcionan en su totalidad, expandiendo las tablas a un mínimo de 10 registros consistentes.
+- **Prompt formulado:**
+  > "Diseña 5 consultas SQL con JOIN para el reto extra de la rúbrica del caso Tienda Online en PostgreSQL. Deben demostrar relaciones 1:N y N:M, usar INNER JOIN, LEFT JOIN, agregaciones multirrango y anti-joins para inventario sin rotación. Cada consulta debe contar con comentarios detallados explicando el problema de negocio resuelto. Además, asegura que cada una de las 6 tablas del esquema contenga al menos 10 registros con INSERT INTO coherentes."
+- **Respuesta de la IA:**
+  Generó las 5 consultas y la ampliación de datos para clientes, productos, cupones, órdenes, orden_items y uso_cupones.
+- **Ajuste y Corrección Manual Aplicada:**
+  1. **Alineación con Reglas de Negocio:** Se verificó la coherencia de cálculos de subtotal, descuentos de cupones (1% a 100%) y costos de envío (gratis si subtotal >= ₡35.000) en las 11 órdenes generadas.
+  2. **Verificación de Restricción UNIQUE en N:M:** Se comprobó que en `uso_cupones` ningún cliente tuviese duplicidad en el mismo cupón, satisfaciendo la restricción `UNIQUE(cliente_id, cupon_id)`.
+  3. **Demostración Práctica de Casos Borde:** En la Consulta 2 (LEFT JOIN) se incluyó a un cliente registrado sin compras para comprobar que `COALESCE` arroja 0 pedidos y ₡0.00 en lugar de eliminar la fila; y en la Consulta 5 (Anti-join) se incluyeron productos con stock pero sin compras para diagnosticar inventario inmovilizado.
+  4. **Empaquetado de Entrega:** Se generó el archivo unificado `Chaves_Luis_BaseDatos.sql` cumpliendo rigurosamente la secuencia del PDF: Encabezado, CREATE DATABASE, CREATE TABLE con restricciones, mínimo 10 INSERTs por tabla, comentarios explicativos de relaciones y las 5 consultas SELECT con JOIN.

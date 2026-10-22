@@ -1,0 +1,165 @@
+/* =============================================================================
+   NAVBAR & HEADER STYLES - CYBERFORGE HARDWARE
+   ============================================================================= */
+
+.cf-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  background-color: rgba(6, 9, 18, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cf-navbar-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  height: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .cf-navbar-container {
+    padding: 0 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .cf-navbar-container {
+    padding: 0 2rem;
+  }
+}
+
+.cf-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cf-logo-hex {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-brand-title {
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: 0.05em;
+  background: linear-gradient(to right, #00f0ff, #38bdf8, #c026d3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+}
+
+.cf-brand-subtitle {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  color: #c026d3;
+  text-transform: uppercase;
+  margin-top: -2px;
+}
+
+.cf-badge-copilot {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: rgba(30, 27, 75, 0.85);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.cf-badge-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: #818cf8;
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Nav Pills Group */
+.cf-nav-pills {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  background: #090e1c;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.cf-nav-pill-item {
+  padding: 0.35rem 1.25rem;
+  border-radius: 9999px;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.cf-nav-pill-item:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cf-nav-pill-item.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Sub-header Breadcrumb Bar */
+.cf-subbar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: rgba(7, 11, 21, 0.7);
+  font-size: 0.75rem;
+}
+
+.cf-subbar-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0.65rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .cf-subbar-container {
+    padding: 0.65rem 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .cf-subbar-container {
+    padding: 0.65rem 2rem;
+  }
+}

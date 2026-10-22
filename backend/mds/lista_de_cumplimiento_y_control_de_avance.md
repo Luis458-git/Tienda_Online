@@ -60,9 +60,9 @@
 ### 6. Checkpoint Día 1
 - [x] Pruebas realizadas en Thunder Client o Postman para todos los endpoints.
 - [x] Respuestas probadas y documentadas para: `200`, `201`, `400`, `404` y `409`.
-- [ ] Colección exportada o capturas guardadas en la carpeta `docs/`.
-- [ ] Commit y push al repositorio remoto al cierre del Día 1.
-- [ ] `BITACORA_IA.md` iniciada con las primeras consultas y ajustes realizados con el copiloto.
+- [x] Colección exportada o capturas guardadas en la carpeta `docs/` (`docs/postman_collection.json`).
+- [x] Commit y push al repositorio remoto al cierre del Día 1.
+- [x] `BITACORA_IA.md` iniciada con las primeras consultas y ajustes realizados con el copiloto.
 
 ---
 
@@ -102,19 +102,30 @@
 - [x] Visualización de ventas por categoría, top 3 productos y valor promedio por orden en tarjetas métricas (`MetricCard`).
 
 ### 11. Agente de IA en n8n
-- [ ] Workflow en n8n creado con nodo **Webhook (POST)** y nodo **AI Agent**.
-- [ ] Prompt del agente configurado para generar descripciones persuasivas o sugerencias de productos complementarios.
-- [ ] Nodo de respuesta configurado bajo el contrato estricto `{ ok: true, data: { ... }, error: null }`.
+- [x] Workflow en n8n creado con nodo **Webhook (POST)** y nodo **AI Agent**.
+- [x] Prompt del agente configurado para generar descripciones persuasivas o sugerencias de productos complementarios.
+- [x] Nodo de respuesta configurado bajo el contrato estricto `{ ok: true, data: { ... }, error: null }`.
 - [x] Frontend conectado al Webhook de n8n mediante `src/services/aiService.js`.
 - [x] Botón en la interfaz de React para invocar al agente y mostrar su respuesta visualmente.
-- [ ] Workflow de n8n exportado en `workflow_n8n.json` (sin credenciales ni API keys).
+- [x] Workflow de n8n exportado en `workflow_n8n.json` (sin credenciales ni API keys).
 
 ### 12. Documentación y Entrega Final
-- [ ] Archivo `BITACORA_IA.md` completo con al menos 5 registros obligatorios (prompt, respuesta de la IA, ajuste manual).
-- [ ] Archivo `README.md` completo:
-  - [ ] Descripción del caso elegido.
-  - [ ] Diagrama entidad-relación.
-  - [ ] Instrucciones paso a paso para levantar la base de datos, backend, frontend y n8n.
-  - [ ] Lista de endpoints implementados y reglas de negocio soportadas.
-- [ ] Verificación de código limpio: sin secretos en `.env`, sin concatenaciones SQL.
-- [ ] Repaso personal para la defensa individual (capacidad de explicar y modificar en vivo cualquier parte del código).
+- [x] Archivo `BITACORA_IA.md` completo con al menos 5 registros obligatorios (6 registros documentados con prompt, respuesta y ajustes).
+- [x] Archivo `README.md` completo:
+  - [x] Descripción del caso elegido.
+  - [x] Diagrama entidad-relación.
+  - [x] Instrucciones paso a paso para levantar la base de datos, backend, frontend y n8n.
+  - [x] Lista de endpoints implementados y reglas de negocio soportadas.
+- [x] Verificación de código limpio: sin secretos en `.env`, sin concatenaciones SQL.
+- [x] Repaso personal para la defensa individual (capacidad de explicar y modificar en vivo cualquier parte del código).
+
+---
+
+## RETO EXTRA / TRABAJO DE EXTENSIÓN: Bases de Datos Relacionales (Puntos Extra)
+- [x] **Mínimo 10 registros por tabla:** Las 6 tablas (`clientes`, `productos`, `cupones`, `ordenes`, `orden_items`, `uso_cupones`) cuentan con >= 10 tuplas reales y coherentes.
+- [x] **Archivo oficial de entrega:** `Chaves_Luis_BaseDatos.sql` generado en el orden estricto del PDF (encabezado, creación, tablas, llaves, restricciones, inserts y consultas).
+- [x] **Consulta Extra 1 (INNER JOIN múltiple):** Detalle de facturación multilínea cruzando 4 tablas (`clientes`, `ordenes`, `orden_items`, `productos`).
+- [x] **Consulta Extra 2 (LEFT JOIN con Agregaciones):** Análisis de ciclo de vida del cliente (LTV) distinguiendo clientes activos vs prospectos inactivos con `COALESCE`.
+- [x] **Consulta Extra 3 (N:M con Tabla Intermedia):** Auditoría financiera de cupones uniendo `uso_cupones`, `clientes`, `cupones` y `ordenes`.
+- [x] **Consulta Extra 4 (GROUP BY + HAVING):** Ventas por categoría y producto con filtro de volumen en órdenes no canceladas.
+- [x] **Consulta Extra 5 (LEFT JOIN Anti-Join):** Detección de stock inmovilizado (productos con stock > 0 pero sin órdenes registradas).
