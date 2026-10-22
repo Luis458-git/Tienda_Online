@@ -396,64 +396,66 @@ export default function ProductDetail() {
 
                 {/* ============================================================== */}
                 {/* COLUMNA DERECHA: Copiloto de IA (n8n & LangChain) (5 cols)    */}
+                                {/* ============================================================== */}
+                {/* COLUMNA DERECHA: Copiloto de IA (Diseño Pulido & Letras Grandes) */}
                 {/* ============================================================== */}
                 <div className="lg:col-span-5 space-y-4">
                     
                     {/* Tarjeta del Copiloto IA */}
-                    <div className="bg-[#10131c] border border-[#1e2333] rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden">
+                    <div className="bg-[#10131c] border border-[#1e2333] rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
                         
                         {/* Glow ambiental */}
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         {/* Header del Agente */}
-                        <div className="flex items-center justify-between pb-4 border-b border-[#1b2030] mb-5">
-                            <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-                                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                        <div className="flex items-center justify-between pb-5 border-b border-[#1b2030] mb-5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+                                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                                         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-bold text-white tracking-tight">
+                                    <h3 className="text-base font-bold text-white tracking-tight">
                                         Copiloto de IA TechStore
                                     </h3>
-                                    <p className="text-[11px] text-slate-400">n8n Webhook · LangChain Agent</p>
+                                    <p className="text-xs text-indigo-300/80 font-medium">Inteligencia Generativa de Hardware</p>
                                 </div>
                             </div>
 
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#14231f] text-emerald-400 border border-[#1b3d33]">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#14231f] text-emerald-400 border border-[#1b3d33]">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                 Online
                             </span>
                         </div>
 
-                        <div className="mb-5">
-                            <h4 className="text-base font-bold text-white mb-1">
-                                Copywriter & Recomendador de Hardware
+                        <div className="mb-6">
+                            <h4 className="text-lg font-bold text-white mb-1.5">
+                                Asistente Técnico y Comercial
                             </h4>
-                            <p className="text-xs text-slate-400 leading-relaxed">
-                                Genera una descripción comercial persuasiva optimizada para conversión y descubre productos complementarios recomendados para este artículo.
+                            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                Genera argumentos de venta persuasivos en tiempo real y analiza compatibilidad con periféricos y accesorios clave.
                             </p>
                         </div>
 
-                        {/* Botón Principal de Invocación con Shimmer */}
+                        {/* Botón Principal de Invocación con Estilo Premium */}
                         <button
                             type="button"
                             onClick={handleConsultarIA}
                             disabled={consultandoIA}
-                            className="w-full py-3.5 px-5 rounded-2xl font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-[#6366f1] via-[#7c3aed] to-[#8b5cf6] hover:from-[#4f46e5] hover:via-[#6d28d9] hover:to-[#7c3aed] shadow-lg shadow-indigo-600/30 transition-all duration-200 disabled:opacity-40 flex items-center justify-center gap-2 active:scale-[0.99] cursor-pointer"
+                            className="w-full py-4 px-6 rounded-2xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-[#6366f1] via-[#7c3aed] to-[#8b5cf6] hover:from-[#4f46e5] hover:via-[#6d28d9] hover:to-[#7c3aed] shadow-xl shadow-indigo-600/30 transition-all duration-200 disabled:opacity-40 flex items-center justify-center gap-2.5 active:scale-[0.99] cursor-pointer"
                         >
                             {consultandoIA ? (
                                 <>
-                                    <svg className="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                                     </svg>
-                                    <span>Consultando al Agente en n8n...</span>
+                                    <span>Generando Análisis Inteligente...</span>
                                 </>
                             ) : (
                                 <>
-                                    <span>✨</span>
+                                    <span className="text-lg">✨</span>
                                     <span>Generar Copy y Recomendaciones con IA</span>
                                 </>
                             )}
@@ -466,84 +468,111 @@ export default function ProductDetail() {
                             </div>
                         )}
 
-                        {/* Resultados del Agente de IA */}
+                        {/* Resultados del Agente de IA con Letras Grandes y Espaciadas */}
                         {respuestaIA ? (
-                            <div className="mt-6 space-y-4 pt-5 border-t border-[#1b2030] animate-fadeIn">
+                            <div className="mt-7 space-y-6 pt-6 border-t border-[#1b2030] animate-fadeIn">
                                 
-                                {/* Copy Comercial Persuasivo */}
+                                {/* Bloque: Copy Comercial Persuasivo con Letra Grande */}
                                 {respuestaIA.copy_comercial && (
-                                    <div className="bg-[#0b0d14] border border-[#1e2332] rounded-2xl p-4.5 shadow-inner">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-[11px] font-bold text-[#818cf8] uppercase tracking-wider flex items-center gap-1.5">
-                                                <span>📝</span> Copy Comercial Persuasivo:
+                                    <div className="bg-[#0b0d14] border border-[#22283a] rounded-2xl p-5 sm:p-6 shadow-xl relative">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-xs font-bold text-[#818cf8] uppercase tracking-wider flex items-center gap-2">
+                                                <span>📝</span> Copy Comercial Persuasivo
                                             </span>
                                             <button
                                                 type="button"
                                                 onClick={() => handleCopiarTexto(respuestaIA.copy_comercial)}
-                                                className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 transition"
-                                                title="Copiar texto"
+                                                className="text-xs font-semibold text-slate-300 hover:text-white bg-[#181a28] hover:bg-[#202438] border border-[#2b3145] px-3 py-1 rounded-lg flex items-center gap-1.5 transition"
+                                                title="Copiar texto al portapapeles"
                                             >
                                                 {copiado ? '✓ Copiado' : '📋 Copiar'}
                                             </button>
                                         </div>
-                                        <p className="text-xs sm:text-sm text-slate-200 leading-relaxed italic">
+
+                                        {respuestaIA.titular && (
+                                            <h5 className="text-base sm:text-lg font-extrabold text-white mb-2.5 tracking-tight">
+                                                {respuestaIA.titular}
+                                            </h5>
+                                        )}
+
+                                        <p className="text-sm sm:text-base leading-relaxed text-slate-100 font-normal">
                                             "{respuestaIA.copy_comercial}"
                                         </p>
                                     </div>
                                 )}
 
-                                {/* Puntos Clave */}
+                                {/* Bloque: Puntos Fuertes Destacados */}
                                 {respuestaIA.puntos_clave && respuestaIA.puntos_clave.length > 0 && (
-                                    <div className="space-y-1.5">
-                                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                                            Puntos Fuertes Destacados:
+                                    <div>
+                                        <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-3 flex items-center gap-1.5">
+                                            <span>⚡</span> Puntos Fuertes Destacados:
                                         </span>
-                                        <div className="grid grid-cols-1 gap-1.5">
-                                            {respuestaIA.puntos_clave.map((punto, idx) => (
-                                                <div key={idx} className="bg-[#0b0d14] border border-[#1e2332] rounded-xl p-2.5 text-xs text-slate-300 flex items-center gap-2">
-                                                    <span className="text-emerald-400 font-bold">✓</span>
-                                                    <span>{punto}</span>
-                                                </div>
-                                            ))}
+                                        <div className="space-y-2.5">
+                                            {respuestaIA.puntos_clave.map((punto, idx) => {
+                                                const titulo = typeof punto === 'object' ? punto.titulo : punto;
+                                                const desc = typeof punto === 'object' ? punto.descripcion : null;
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        className="bg-[#0b0d14] border border-[#1e2332] rounded-2xl p-4 flex items-start gap-3.5 shadow-sm"
+                                                    >
+                                                        <div className="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0 text-sm font-bold mt-0.5">
+                                                            ✓
+                                                        </div>
+                                                        <div>
+                                                            <h5 className="font-bold text-white text-sm sm:text-base leading-snug">
+                                                                {titulo}
+                                                            </h5>
+                                                            {desc && (
+                                                                <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                                                                    {desc}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Productos Complementarios Recomendados */}
+                                {/* Bloque: Productos Complementarios Recomendados */}
                                 {respuestaIA.recomendados && respuestaIA.recomendados.length > 0 && (
-                                    <div className="space-y-2 pt-2">
-                                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                                            🎯 Productos Complementarios Sugeridos:
+                                    <div>
+                                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-3 flex items-center gap-1.5">
+                                            <span>🎯</span> Productos Complementarios Sugeridos:
                                         </span>
-                                        <div className="space-y-2">
+                                        <div className="space-y-3">
                                             {respuestaIA.recomendados.map((item, idx) => {
                                                 const nombreItem = typeof item === 'string' ? item : item.nombre;
                                                 const justificacion = typeof item === 'object' && item.justificacion ? item.justificacion : null;
                                                 return (
                                                     <div
                                                         key={idx}
-                                                        className="bg-[#0b0d14] border border-[#1e2332] hover:border-[#2b3248] rounded-xl p-3 flex items-start justify-between gap-3 transition"
+                                                        className="bg-[#0b0d14] border border-[#1e2332] hover:border-[#2b3248] rounded-2xl p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition shadow-sm"
                                                     >
-                                                        <div className="flex items-start gap-2.5">
-                                                            <div className="w-6 h-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
-                                                                ✓
+                                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
+                                                                #{idx + 1}
                                                             </div>
                                                             <div>
-                                                                <h5 className="font-bold text-white text-xs">
+                                                                <h5 className="font-bold text-white text-sm sm:text-base">
                                                                     {nombreItem}
                                                                 </h5>
                                                                 {justificacion && (
-                                                                    <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                                                                    <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
                                                                         {justificacion}
                                                                     </p>
                                                                 )}
                                                             </div>
                                                         </div>
+
                                                         <Link
                                                             to="/catalogo"
-                                                            className="text-[11px] text-indigo-400 hover:text-white font-semibold shrink-0"
+                                                            className="inline-flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-xl bg-[#141724] hover:bg-[#1c2133] border border-[#22283a] text-xs font-semibold text-indigo-300 hover:text-white transition shrink-0"
                                                         >
-                                                            Ver →
+                                                            <span>Ver en catálogo</span>
+                                                            <span>→</span>
                                                         </Link>
                                                     </div>
                                                 );
@@ -552,29 +581,11 @@ export default function ProductDetail() {
                                     </div>
                                 )}
 
-                                {/* Inspector de Contrato Estricto para Evaluación del Laboratorio */}
-                                <div className="pt-3 border-t border-[#1b2030]">
-                                    <button
-                                        type="button"
-                                        onClick={() => setMostrarContrato(!mostrarContrato)}
-                                        className="text-[11px] text-slate-500 hover:text-slate-300 flex items-center gap-1.5 transition font-mono"
-                                    >
-                                        <span>{mostrarContrato ? '▼' : '▶'}</span>
-                                        <span>Inspeccionar Contrato Estricto JSON ({'{ ok: true, data, error: null }'})</span>
-                                    </button>
-
-                                    {mostrarContrato && (
-                                        <pre className="mt-2 p-3 bg-[#08090d] border border-[#1b2030] rounded-xl text-[10px] text-emerald-400 font-mono overflow-x-auto">
-                                            {JSON.stringify({ ok: true, data: respuestaIA, error: null }, null, 2)}
-                                        </pre>
-                                    )}
-                                </div>
-
                             </div>
                         ) : (
-                            <div className="mt-6 p-5 rounded-2xl bg-[#0b0d14] border border-[#1e2332] text-center text-xs text-slate-400">
-                                <div className="text-lg mb-1">⚡</div>
-                                Presiona el botón superior para ejecutar el flujo del agente de IA en n8n y generar el análisis técnico comercial.
+                            <div className="mt-6 p-6 rounded-2xl bg-[#0b0d14] border border-[#1e2332] text-center text-xs sm:text-sm text-slate-400 leading-relaxed">
+                                <div className="text-2xl mb-2">⚡</div>
+                                Presiona el botón superior para generar un análisis comercial y recomendaciones de hardware adaptadas a este artículo.
                             </div>
                         )}
 
