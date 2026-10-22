@@ -27,11 +27,8 @@ export default function ProductDetail() {
     } = useFetch(() => getProductoById(id), [id]);
 
     const formatoMoneda = (monto) => {
-        return new Intl.NumberFormat('es-CR', {
-            style: 'currency',
-            currency: 'CRC',
-            maximumFractionDigits: 0
-        }).format(monto || 0);
+        const num = Math.round(Number(monto) || 0);
+        return `₡${num.toLocaleString('es-CR')}`;
     };
 
     const handleAddToCart = () => {
@@ -60,13 +57,13 @@ export default function ProductDetail() {
         }
     };
 
-    if (loading) return <LoadingSpinner mensaje="Cargando ficha técnica del producto..." />;
+    if (loading) return <LoadingSpinner mensaje="Cargando ficha técnica del hardware..." />;
     if (error) {
         return (
-            <div className="page-container">
+            <div className="py-12 max-w-lg mx-auto">
                 <ErrorMessage error={error} />
-                <div className="mt-4">
-                    <Link to="/catalogo" className="btn-secondary">
+                <div className="mt-4 text-center">
+                    <Link to="/catalogo" className="text-xs text-indigo-400 hover:text-white font-semibold">
                         ← Volver al catálogo
                     </Link>
                 </div>
@@ -76,100 +73,151 @@ export default function ProductDetail() {
     if (!producto) return null;
 
     const agotado = producto.stock <= 0;
-    const precioNumerico = parseFloat(producto.precio);
+    const precioNumerico = parseFloat(producto.precio || 0);
 
     return (
-        <div className="page-container product-detail-page">
-            <div className="mb-4">
-                <Link to="/catalogo" className="breadcrumb-link">
-                    ← Volver al catálogo de productos
+        <div className="pb-12 animate-fadeIn">
+            {/* Breadcrumb superior */}
+            <div className="mb-5">
+                <Link
+                    to="/catalogo"
+                    className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white font-medium transition"
+                >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Volver al catálogo de hardware</span>
                 </Link>
             </div>
 
-            <div className="detail-layout">
-                {/* Columna Izquierda: Ficha Técnica */}
-                <div className="detail-main-card">
-                    <div className="detail-header">
-                        <span className="product-category">{producto.categoria}</span>
-                        <span className={`stock-badge ${agotado ? 'stock-agotado' : producto.stock <= 5 ? 'stock-bajo' : 'stock-disponible'}`}>
-                            {agotado ? 'Agotado' : `${producto.stock} unidades en stock`}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                {/* Columna Izquierda: Ficha Técnica (7 cols) */}
+                <div className="lg:col-span-7 bg-[#10131c] border border-[#1e2333] rounded-2xl p-6 sm:p-7 shadow-xl">
+                    <div className="flex items-center justify-between pb-4 border-b border-[#1b2030] mb-5">
+                        <span className="bg-[#181a28] text-indigo-300 border border-[#2b3148] px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                            {producto.categoria}
+                        </span>
+                        <span
+                            className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                                agotado
+                                    ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                                    : producto.stock <= 5
+                                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            }`}
+                        >
+                            {agotado ? 'Agotado' : `✓ ${producto.stock} unidades disponibles`}
                         </span>
                     </div>
 
-                    <h1 className="detail-title">{producto.nombre}</h1>
-                    <div className="detail-price">{formatoMoneda(precioNumerico)}</div>
-
-                    <div className="detail-section">
-                        <h3>Descripción del Producto</h3>
-                        <p className="detail-description">{producto.descripcion}</p>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">
+                        {producto.nombre}
+                    </h1>
+                    <div className="text-2xl sm:text-3xl font-extrabold font-mono text-white mb-6">
+                        {formatoMoneda(precioNumerico)}
                     </div>
 
-                    <div className="detail-section">
-                        <h3>Disponibilidad en Tiempo Real</h3>
-                        <div className="stock-info-box">
-                            <div className="stock-indicator">
-                                <span className="indicator-dot" style={{ backgroundColor: agotado ? '#ef4444' : '#10b981' }}></span>
-                                <span>{agotado ? 'Inventario agotado para este artículo' : `Disponibles ${producto.stock} artículos para entrega inmediata`}</span>
+                    {/* Descripción Técnica */}
+                    <div className="mb-6">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                            Descripción Técnica
+                        </h3>
+                        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed bg-[#0b0d14] border border-[#1e2332] rounded-xl p-4">
+                            {producto.descripcion}
+                        </p>
+                    </div>
+
+                    {/* Disponibilidad e Inventario */}
+                    <div className="mb-6">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                            Estado de Inventario en Tiempo Real
+                        </h3>
+                        <div className="bg-[#0b0d14] border border-[#1e2332] rounded-xl p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-2.5 text-xs text-slate-200">
+                                <span
+                                    className={`w-2.5 h-2.5 rounded-full ${agotado ? 'bg-red-500' : 'bg-emerald-400'}`}
+                                ></span>
+                                <span>{agotado ? 'Sin stock disponible actualmente' : `${producto.stock} unidades listas para entrega inmediata`}</span>
                             </div>
                             {producto.unidades_vendidas > 0 && (
-                                <p className="text-muted text-sm mt-1">
-                                    🔥 {producto.unidades_vendidas} unidades vendidas históricamente
-                                </p>
+                                <span className="text-[11px] font-mono text-indigo-300 bg-[#181a28] px-2 py-0.5 rounded border border-[#2b3148]">
+                                    🔥 {producto.unidades_vendidas} vendidas
+                                </span>
                             )}
                         </div>
                     </div>
 
-                    {/* Acciones de Compra */}
-                    <div className="purchase-panel">
-                        <div className="quantity-control">
-                            <label htmlFor="qty">Cantidad:</label>
-                            <input
-                                id="qty"
-                                type="number"
-                                min="1"
-                                max={producto.stock || 1}
-                                value={cantidad}
-                                onChange={(e) => setCantidad(Math.max(1, Math.min(parseInt(e.target.value, 10) || 1, producto.stock)))}
-                                disabled={agotado}
-                                className="qty-input"
-                            />
+                    {/* Panel de Compra */}
+                    <div className="pt-4 border-t border-[#1b2030] flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <label htmlFor="qty" className="text-xs font-semibold text-slate-400">Cantidad:</label>
+                            <div className="flex items-center bg-[#131622] border border-[#222839] rounded-lg p-0.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setCantidad(Math.max(1, cantidad - 1))}
+                                    disabled={agotado || cantidad <= 1}
+                                    className="w-7 h-7 rounded text-slate-400 hover:text-white hover:bg-[#1c2133] flex items-center justify-center text-xs font-bold transition disabled:opacity-20"
+                                >
+                                    -
+                                </button>
+                                <span className="w-8 text-center text-xs font-mono font-bold text-white">
+                                    {cantidad}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setCantidad(Math.min(producto.stock, cantidad + 1))}
+                                    disabled={agotado || cantidad >= producto.stock}
+                                    className="w-7 h-7 rounded text-slate-400 hover:text-white hover:bg-[#1c2133] flex items-center justify-center text-xs font-bold transition disabled:opacity-20"
+                                >
+                                    +
+                                </button>
+                            </div>
                         </div>
 
                         <button
                             onClick={handleAddToCart}
                             disabled={agotado}
-                            className="btn-primary btn-lg"
+                            className="flex-1 bg-[#6366f1] hover:bg-[#4f46e5] text-white font-bold py-3 px-5 rounded-xl text-xs sm:text-sm shadow-lg shadow-indigo-600/25 transition active:scale-[0.99] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                            {agotado ? 'Producto Agotado' : '🛒 Añadir al Carrito'}
+                            <span>🛒</span>
+                            <span>{agotado ? 'Producto Agotado' : `Añadir ${cantidad} unidad(es) al Carrito`}</span>
                         </button>
                     </div>
 
                     {agregadoMensaje && (
-                        <div className="alert-success mt-4">
-                            ✅ ¡{cantidad} unidad(es) de "{producto.nombre}" agregada(s) al carrito!
+                        <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 animate-fadeIn">
+                            <span>✅</span>
+                            <span>¡{cantidad} unidad(es) de "{producto.nombre}" agregada(s) al carrito!</span>
                         </div>
                     )}
                 </div>
 
-                {/* Columna Derecha: Integración con Agente de IA en n8n */}
-                <div className="detail-ai-card">
-                    <div className="ai-card-header">
-                        <div className="ai-badge">
-                            <span className="ai-sparkle">✨</span>
-                            <span>Agente de IA (n8n Webhook)</span>
+                {/* Columna Derecha: Asistente IA (5 cols) */}
+                <div className="lg:col-span-5 bg-[#10131c] border border-[#1e2333] rounded-2xl p-6 shadow-xl">
+                    <div className="flex items-center justify-between pb-4 border-b border-[#1b2030] mb-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-base">✨</span>
+                            <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                                Copiloto de IA (n8n Agent)
+                            </h2>
                         </div>
-                        <h2>Copywriter & Recomendador</h2>
-                        <p className="text-muted text-sm">
-                            Genera una descripción comercial persuasiva y productos complementarios en función de este artículo.
-                        </p>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#181a2e] text-[#818cf8] border border-[#2b2f4c]">
+                            LANGCHAIN
+                        </span>
                     </div>
+
+                    <p className="text-xs text-slate-400 mb-5 leading-relaxed">
+                        Genera una descripción comercial persuasiva y descubre qué productos complementarios recomienda el modelo de lenguaje para este artículo.
+                    </p>
 
                     <button
                         onClick={handleConsultarIA}
                         disabled={consultandoIA}
-                        className="btn-ai-generate w-full"
+                        className="w-full bg-[#181a2e] hover:bg-[#22253f] border border-[#2e3355] text-[#a5b4fc] hover:text-white font-bold py-3 px-4 rounded-xl text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-40"
                     >
-                        {consultandoIA ? 'Consultando al Agente de IA...' : '✨ Consultar Copiloto IA'}
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#818cf8] animate-pulse"></span>
+                        <span>{consultandoIA ? 'Consultando al Agente de IA...' : '✨ Consultar Copiloto IA'}</span>
                     </button>
 
                     {errorIA && (
@@ -179,31 +227,37 @@ export default function ProductDetail() {
                     )}
 
                     {respuestaIA && (
-                        <div className="ai-response-box mt-4">
-                            <div className="ai-response-item">
-                                <span className="ai-label">📝 Copy Comercial Persuasivo:</span>
-                                <p className="ai-text">{respuestaIA.copy_comercial}</p>
-                            </div>
-
-                            {respuestaIA.recomendados && respuestaIA.recomendados.length > 0 && (
-                                <div className="ai-response-item mt-4">
-                                    <span className="ai-label">🎯 Productos Complementarios Sugeridos:</span>
-                                    <ul className="ai-recommendations-list">
-                                        {respuestaIA.recomendados.map((item, idx) => (
-                                            <li key={idx} className="ai-recommendation-item">
-                                                <span>✓ {typeof item === 'string' ? item : item.nombre}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
+                        <div className="mt-5 space-y-4 pt-4 border-t border-[#1b2030] animate-fadeIn">
+                            {respuestaIA.copy_comercial && (
+                                <div className="bg-[#0b0d14] border border-[#1e2332] rounded-xl p-4">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 block mb-1">
+                                        📝 Copy Persuasivo Generado:
+                                    </span>
+                                    <p className="text-xs text-slate-200 leading-relaxed">
+                                        {respuestaIA.copy_comercial}
+                                    </p>
                                 </div>
                             )}
 
-                            <div className="ai-contract-badge">
-                                Contrato cumplido: <code>&#123; ok: true, data: &#123; copy_comercial, recomendados &#125; &#125;</code>
-                            </div>
+                            {respuestaIA.recomendados && respuestaIA.recomendados.length > 0 && (
+                                <div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                                        🎯 Complementos Sugeridos:
+                                    </span>
+                                    <div className="space-y-1.5">
+                                        {respuestaIA.recomendados.map((item, idx) => (
+                                            <div key={idx} className="bg-[#0b0d14] border border-[#1e2332] rounded-lg p-2.5 text-xs text-slate-300 flex items-center gap-2">
+                                                <span className="text-emerald-400 font-bold">✓</span>
+                                                <span>{typeof item === 'string' ? item : item.nombre}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
+
             </div>
 
             {/* Modal Reusable del Copiloto IA */}

@@ -73,7 +73,7 @@ export default function Checkout() {
     const envioGratis = clienteSeleccionado && subtotalNeto > 35000;
     const totalFinal = Math.max(0, subtotalNeto + costoEnvio);
 
-    // Formateador nítido sin espacios excesivos
+    // Formateador limpio de colones
     const formatoMoneda = (monto) => {
         const num = Math.round(Number(monto) || 0);
         return `₡${num.toLocaleString('es-CR')}`;
@@ -145,86 +145,68 @@ export default function Checkout() {
         }
     };
 
-    // Pantalla de Confirmación de Compra (201 Created)
+    // Pantalla de Confirmación de Compra Exitosa (201 Created)
     if (ordenExitosa) {
         return (
-            <div className="py-14 px-4 sm:px-6 max-w-2xl mx-auto">
-                <div className="relative bg-slate-900/80 backdrop-blur-2xl border border-slate-800/80 rounded-3xl p-8 sm:p-12 shadow-2xl text-center overflow-hidden">
-                    <div className="absolute -top-24 -left-24 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div className="absolute -bottom-24 -right-24 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-                    <div className="w-18 h-18 rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/10">
-                        <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+            <div className="py-12 px-4 max-w-2xl mx-auto">
+                <div className="bg-[#10131c] border border-[#1e2333] rounded-2xl p-8 sm:p-10 shadow-2xl text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-500/10">
+                        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
 
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3 tracking-wide uppercase">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#14231f] text-emerald-400 border border-[#1b3d33] mb-3 uppercase tracking-wider">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                         Transacción Confirmada · HTTP 201 Created
-                    </span>
+                    </div>
 
-                    <h1 className="text-3xl font-extrabold text-white tracking-tight mb-3">
-                        ¡Orden #{ordenExitosa.id} Procesada con Éxito!
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">
+                        ¡Orden #{ordenExitosa.orden.id} Procesada con Éxito!
                     </h1>
-                    <p className="text-slate-400 text-sm max-w-md mx-auto mb-8 leading-relaxed">
-                        Se ha descontado el inventario de forma atómica en PostgreSQL y se generó el comprobante oficial.
+                    <p className="text-slate-400 text-xs sm:text-sm max-w-md mx-auto mb-6">
+                        El inventario fue descontado de forma atómica en PostgreSQL y se ha generado la reserva para despacho.
                     </p>
 
-                    <div className="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-6 text-left divide-y divide-slate-800/60 mb-8 space-y-3.5 shadow-inner">
-                        <div className="flex justify-between items-center pb-3">
-                            <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Cliente</span>
-                            <span className="text-sm font-semibold text-slate-200">
-                                {ordenExitosa.cliente?.nombre} ({ordenExitosa.cliente?.ciudad})
-                            </span>
+                    <div className="bg-[#0b0d14] border border-[#1e2332] rounded-xl p-5 text-left mb-6 space-y-2 text-xs sm:text-sm">
+                        <div className="flex justify-between py-1 border-b border-[#1a1f2d]">
+                            <span className="text-slate-400">Cliente</span>
+                            <span className="font-semibold text-white">{ordenExitosa.orden.cliente_nombre}</span>
                         </div>
-                        <div className="flex justify-between items-center pt-3 pb-3">
-                            <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Estado de la Orden</span>
-                            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wide">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                                {ordenExitosa.estado}
-                            </span>
+                        <div className="flex justify-between py-1 border-b border-[#1a1f2d]">
+                            <span className="text-slate-400">Total Facturado</span>
+                            <span className="font-bold font-mono text-emerald-400">{formatoMoneda(ordenExitosa.orden.total)}</span>
                         </div>
-                        <div className="flex justify-between items-center pt-3 pb-3 text-sm">
-                            <span className="text-slate-400">Subtotal</span>
-                            <span className="font-mono text-slate-200">{formatoMoneda(ordenExitosa.subtotal)}</span>
+                        <div className="flex justify-between py-1 border-b border-[#1a1f2d]">
+                            <span className="text-slate-400">Costo de Envío</span>
+                            <span className="text-slate-200">{formatoMoneda(ordenExitosa.orden.costo_envio)}</span>
                         </div>
-                        {ordenExitosa.descuento > 0 && (
-                            <div className="flex justify-between items-center pt-3 pb-3 text-sm text-emerald-400 font-medium">
-                                <span>Descuento Aplicado ({ordenExitosa.descuento_porcentaje}%)</span>
-                                <span className="font-mono">-{formatoMoneda(ordenExitosa.descuento)}</span>
+                        {ordenExitosa.orden.descuento_aplicado > 0 && (
+                            <div className="flex justify-between py-1 border-b border-[#1a1f2d]">
+                                <span className="text-slate-400">Descuento ({ordenExitosa.orden.cupon_codigo})</span>
+                                <span className="text-indigo-400 font-semibold">-{formatoMoneda(ordenExitosa.orden.descuento_aplicado)}</span>
                             </div>
                         )}
-                        <div className="flex justify-between items-center pt-3 pb-3 text-sm">
-                            <span className="text-slate-400">Costo de Envío</span>
-                            <span className="font-mono text-slate-200">
-                                {ordenExitosa.envio === 0 ? (
-                                    <span className="text-emerald-400 font-bold">GRATIS</span>
-                                ) : (
-                                    formatoMoneda(ordenExitosa.envio)
-                                )}
-                            </span>
-                        </div>
-                        <div className="flex justify-between items-baseline pt-4">
-                            <span className="font-bold text-white text-base">Total Pagado</span>
-                            <span className="font-mono font-extrabold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-indigo-400">
-                                {formatoMoneda(ordenExitosa.total)}
+                        <div className="flex justify-between py-1">
+                            <span className="text-slate-400">Estado de Orden</span>
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold uppercase">
+                                {ordenExitosa.orden.estado}
                             </span>
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3.5 justify-center">
-                        <Link
-                            to="/"
-                            className="px-6 py-3 rounded-xl text-sm font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-800 hover:text-white border border-slate-700/60 transition-all shadow-sm"
-                        >
-                            📊 Ver Dashboard de Métricas
-                        </Link>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <Link
                             to="/catalogo"
-                            className="px-6 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-indigo-500/25 transition-all"
+                            className="bg-[#6366f1] hover:bg-[#4f46e5] text-white font-bold py-2.5 px-6 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-indigo-600/25"
                         >
-                            🛍️ Seguir Comprando
+                            Seguir Explorando Catálogo
+                        </Link>
+                        <Link
+                            to="/"
+                            className="bg-[#141724] hover:bg-[#1a1e2f] border border-[#22283a] text-slate-300 hover:text-white font-semibold py-2.5 px-6 rounded-xl text-xs sm:text-sm transition"
+                        >
+                            Ver Métricas en Dashboard
                         </Link>
                     </div>
                 </div>
@@ -235,22 +217,22 @@ export default function Checkout() {
     // Carrito Vacío
     if (cart.length === 0) {
         return (
-            <div className="py-24 px-4 max-w-xl mx-auto text-center">
-                <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-10 sm:p-14 shadow-2xl backdrop-blur-xl">
-                    <div className="w-20 h-20 rounded-3xl bg-slate-800/50 border border-slate-700/50 text-slate-400 flex items-center justify-center mx-auto mb-6 shadow-inner">
-                        <svg className="w-10 h-10 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <div className="py-16 text-center max-w-lg mx-auto">
+                <div className="bg-[#10131c] border border-[#1e2333] rounded-2xl p-8 sm:p-12 shadow-2xl">
+                    <div className="w-16 h-16 rounded-2xl bg-[#141724] border border-[#22283a] text-slate-400 flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
                     </div>
-                    <h2 className="text-2xl font-extrabold text-white tracking-tight mb-2">Tu carrito está vacío</h2>
-                    <p className="text-slate-400 text-sm max-w-sm mx-auto mb-8 leading-relaxed">
-                        Explora los productos de nuestro catálogo y agrégalos a tu carrito para disfrutar de envío dinámico y descuentos.
+                    <h2 className="text-xl font-bold text-white mb-2">Tu carrito está vacío</h2>
+                    <p className="text-xs sm:text-sm text-slate-400 mb-6">
+                        No has añadido ningún producto de tecnología a tu selección de compra aún.
                     </p>
                     <Link
                         to="/catalogo"
-                        className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-xl shadow-indigo-500/25 transition-all duration-200"
+                        className="inline-flex items-center gap-2 bg-[#6366f1] hover:bg-[#4f46e5] text-white font-bold px-6 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-indigo-600/25"
                     >
-                        <span>Explorar Catálogo</span>
+                        <span>Explorar Hardware</span>
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
@@ -261,371 +243,372 @@ export default function Checkout() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-            
-            {/* Header con Badge de Seguridad */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-6 border-b border-slate-800/80">
-                <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-3">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
-                        Checkout Seguro · Transacción Protegida
-                    </div>
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                        Finalizar Compra
-                    </h1>
-                    <p className="text-slate-400 text-sm mt-1.5">
-                        Verifica tus artículos, selecciona tu ubicación de entrega y aplica tus cupones de descuento.
-                    </p>
+        <div className="pb-12 animate-fadeIn">
+            {/* Cabecera Principal con Badge de Paso */}
+            <div className="mb-7">
+                <div className="inline-flex items-center gap-1.5 bg-[#181a2e] text-[#818cf8] border border-[#292e4c] px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider mb-2 uppercase">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#818cf8]"></span>
+                    PASO 2 DE 2 · TRANSACCIÓN SEGURA
                 </div>
-
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900/60 border border-slate-800 px-3.5 py-2 rounded-xl shrink-0">
-                    <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <span>PostgreSQL ACID (FOR UPDATE)</span>
-                </div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    Finalizar Compra & Checkout
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                    Revisa tus artículos, selecciona tu ubicación y aplica tus cupones antes de emitir la orden.
+                </p>
             </div>
 
-            {/* Banner de Error (400 o 409) */}
-            {ordenError && (
-                <div className="mb-8">
-                    <ErrorMessage error={ordenError} onClose={() => setOrdenError(null)} />
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Layout en 2 Columnas idéntico a la captura */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-7 items-start">
                 
                 {/* ============================================================== */}
-                {/* COLUMNA IZQUIERDA: Artículos en el Carrito (7 cols)            */}
+                {/* COLUMNA IZQUIERDA: Artículos en tu Carrito (7 cols)            */}
                 {/* ============================================================== */}
-                <div className="lg:col-span-7 bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-800/60 mb-6 gap-3">
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="lg:col-span-7 space-y-4">
+                    
+                    {/* Tarjeta de Productos */}
+                    <div className="bg-[#10131c] border border-[#1e2333] rounded-2xl p-5 sm:p-6 shadow-xl">
+                        
+                        {/* Header de la tarjeta */}
+                        <div className="flex items-center justify-between pb-4 border-b border-[#1b2030] mb-4">
+                            <div className="flex items-center gap-2.5">
+                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                                <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                                    Artículos en tu Carrito
+                                </h2>
+                                <span className="bg-[#181a26] text-slate-300 px-2 py-0.5 rounded-md text-xs font-bold border border-[#262b3d]">
+                                    {cart.length}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleConsultarIACarrito}
+                                    disabled={cart.length === 0}
+                                    className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#181a2e] text-[#818cf8] border border-[#2b2f4c] hover:bg-[#20233b] text-[11px] font-bold transition cursor-pointer"
+                                    title="Consultar Copiloto IA para sugerencias"
+                                >
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#818cf8] animate-pulse"></span>
+                                    Copiloto IA
+                                </button>
+                                <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold">
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>Stock verificado</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Lista de Items */}
+                        <div className="space-y-3">
+                            {cart.map((item) => {
+                                const precioNum = parseFloat(item.precio || 0);
+                                return (
+                                    <div
+                                        key={item.id}
+                                        className="bg-[#0c0e15] border border-[#1a1f2d] rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group hover:border-[#2b3248] transition-colors"
+                                    >
+                                        {/* Thumbnail & Info */}
+                                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#141724] border border-[#22283a] flex items-center justify-center text-indigo-400 shrink-0">
+                                                <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <div className="truncate">
+                                                <div className="flex items-center gap-2">
+                                                    <h4 className="font-bold text-white text-xs sm:text-sm truncate">
+                                                        {item.nombre}
+                                                    </h4>
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-[#181a28] text-indigo-300 border border-[#2b3148] shrink-0">
+                                                        {item.categoria === 'Periféricos' ? 'USB-C' : item.categoria}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
+                                                    <span>{item.categoria}</span>
+                                                    <span>•</span>
+                                                    <span>Sensor / Chip de alta gama</span>
+                                                </div>
+                                                <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                                                    {formatoMoneda(precioNum)} c/u
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Stepper, Precio y Papelera */}
+                                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-0 border-[#1a1f2d]">
+                                            <div className="flex items-center bg-[#131622] border border-[#222839] rounded-lg p-0.5">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateQuantity(item.id, item.cantidad - 1)}
+                                                    className="w-6 h-6 rounded text-slate-400 hover:text-white hover:bg-[#1c2133] flex items-center justify-center text-xs font-bold transition"
+                                                >
+                                                    -
+                                                </button>
+                                                <span className="w-7 text-center text-xs font-mono font-bold text-white">
+                                                    {item.cantidad}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateQuantity(item.id, item.cantidad + 1)}
+                                                    disabled={item.stock !== undefined && item.cantidad >= item.stock}
+                                                    className="w-6 h-6 rounded text-slate-400 hover:text-white hover:bg-[#1c2133] flex items-center justify-center text-xs font-bold transition disabled:opacity-20"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+
+                                            <div className="font-mono font-bold text-xs sm:text-sm text-white text-right min-w-[70px]">
+                                                {formatoMoneda(precioNum * item.cantidad)}
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => removeFromCart(item.id)}
+                                                className="text-slate-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition"
+                                                title="Eliminar producto"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Acciones del pie de carrito */}
+                        <div className="flex items-center justify-between pt-4 mt-4 border-t border-[#1b2030] text-xs">
+                            <Link
+                                to="/catalogo"
+                                className="text-slate-400 hover:text-white font-medium flex items-center gap-1.5 transition"
+                            >
+                                <span>←</span>
+                                <span>Seguir agregando productos</span>
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={clearCart}
+                                className="text-slate-400 hover:text-red-400 font-medium transition"
+                            >
+                                🗑️ Vaciar Carrito
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Dos Tarjetas Informativas Inferiores (Envío Express Priority & Garantía Tech Direct) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div className="bg-[#10131c] border border-[#1e2333] rounded-2xl p-4 flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-[#141724] border border-[#22283a] text-slate-300 flex items-center justify-center shrink-0">
+                                <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1m-6 0a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z" />
                                 </svg>
                             </div>
                             <div>
-                                <h2 className="text-base font-bold text-white tracking-tight">Artículos Seleccionados</h2>
-                                <p className="text-xs text-slate-400">Reserva de inventario en tiempo real</p>
+                                <h4 className="text-xs font-bold text-white">Envío Express Priority</h4>
+                                <p className="text-[11px] text-slate-400 leading-relaxed mt-0.5">
+                                    Entrega estimada en 24-48h con tracking telemétrico en tiempo real.
+                                </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={handleConsultarIACarrito}
-                                disabled={cart.length === 0}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600/25 to-indigo-600/25 hover:from-purple-600/40 hover:to-indigo-600/40 border border-indigo-500/30 text-indigo-300 hover:text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-40"
-                                title="Analizar el carrito con IA y sugerir productos complementarios"
-                            >
-                                <svg className="w-3.5 h-3.5 text-indigo-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        <div className="bg-[#10131c] border border-[#1e2333] rounded-2xl p-4 flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-[#141724] border border-[#22283a] text-emerald-400 flex items-center justify-center shrink-0">
+                                <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                <span>Consultar Copiloto IA</span>
-                            </button>
-                            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-800/80 text-slate-300 border border-slate-700/60">
-                                {cart.length} {cart.length === 1 ? 'item' : 'items'}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Lista de Productos en el Carrito */}
-                    <div className="space-y-3.5">
-                        {cart.map((item) => (
-                            <div
-                                key={item.id}
-                                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-4.5 rounded-2xl bg-slate-950/50 border border-slate-800/70 hover:border-slate-700/80 transition-all duration-200"
-                            >
-                                {/* Thumbnail & Info */}
-                                <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                                    <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner group-hover:border-indigo-500/30 transition-colors">
-                                        <svg className="w-7 h-7 text-indigo-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                    <div className="truncate">
-                                        <h4 className="font-bold text-slate-100 text-sm truncate group-hover:text-white transition-colors">
-                                            {item.nombre}
-                                        </h4>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-900 text-slate-400 border border-slate-800">
-                                                {item.categoria}
-                                            </span>
-                                            <span className="text-slate-600 text-xs">•</span>
-                                            <span className="text-xs text-slate-400 font-mono">
-                                                {formatoMoneda(item.precio)} c/u
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Stepper & Total */}
-                                <div className="flex items-center justify-between sm:justify-end gap-3.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-0 border-slate-800/40">
-                                    <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 shadow-inner">
-                                        <button
-                                            type="button"
-                                            onClick={() => updateQuantity(item.id, item.cantidad - 1)}
-                                            className="w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center transition text-sm font-bold"
-                                            title="Disminuir cantidad"
-                                        >
-                                            -
-                                        </button>
-                                        <span className="w-8 text-center text-xs font-bold text-white font-mono">
-                                            {item.cantidad}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => updateQuantity(item.id, item.cantidad + 1)}
-                                            disabled={item.stock !== undefined && item.cantidad >= item.stock}
-                                            className="w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center transition text-sm font-bold disabled:opacity-20"
-                                            title="Aumentar cantidad"
-                                        >
-                                            +
-                                        </button>
-                                    </div>
-
-                                    <div className="text-right font-mono font-bold text-sm text-slate-100 min-w-[90px]">
-                                        {formatoMoneda(parseFloat(item.precio) * item.cantidad)}
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => removeFromCart(item.id)}
-                                        className="text-slate-500 hover:text-red-400 hover:bg-red-500/10 p-2 rounded-xl transition duration-150"
-                                        title="Eliminar producto"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </div>
                             </div>
-                        ))}
+                            <div>
+                                <h4 className="text-xs font-bold text-white">Garantía Tech Direct</h4>
+                                <p className="text-[11px] text-slate-400 leading-relaxed mt-0.5">
+                                    30 días de devolución directa sin preguntas y soporte 24/7 de hardware.
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Enlaces de Acción Inferior */}
-                    <div className="flex items-center justify-between pt-5 mt-6 border-t border-slate-800/60 text-xs">
-                        <Link
-                            to="/catalogo"
-                            className="inline-flex items-center gap-1.5 text-slate-400 hover:text-indigo-400 font-semibold transition-colors"
-                        >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            <span>Seguir comprando</span>
-                        </Link>
-                        <button
-                            type="button"
-                            onClick={clearCart}
-                            className="text-slate-500 hover:text-red-400 transition-colors font-medium"
-                        >
-                            Vaciar carrito
-                        </button>
-                    </div>
-
-                    {/* Bloque Informativo de Garantía */}
-                    <div className="grid grid-cols-3 gap-3 pt-6 mt-6 border-t border-slate-800/40 text-center">
-                        <div className="p-3 rounded-2xl bg-slate-950/40 border border-slate-800/40">
-                            <span className="text-base block mb-1">⚡</span>
-                            <span className="text-[11px] text-slate-400 font-medium block">Despacho Inmediato</span>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-slate-950/40 border border-slate-800/40">
-                            <span className="text-base block mb-1">🛡️</span>
-                            <span className="text-[11px] text-slate-400 font-medium block">Garantía Oficial</span>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-slate-950/40 border border-slate-800/40">
-                            <span className="text-base block mb-1">📦</span>
-                            <span className="text-[11px] text-slate-400 font-medium block">Embalaje Seguro</span>
-                        </div>
-                    </div>
                 </div>
 
                 {/* ============================================================== */}
-                {/* COLUMNA DERECHA: Datos de Envío, Cupones & Resumen (5 cols)     */}
+                {/* COLUMNA DERECHA: Datos de Envío y Pago (5 cols)                */}
                 {/* ============================================================== */}
-                <div className="lg:col-span-5 bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
-
-                    <div className="flex items-center gap-3 pb-5 border-b border-slate-800/60 mb-6">
-                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 className="text-base font-bold text-white tracking-tight">Datos de Entrega y Pago</h2>
-                            <p className="text-xs text-slate-400">Tarifas según ciudad y cupones</p>
-                        </div>
+                <div className="lg:col-span-5 bg-[#10131c] border border-[#1e2333] rounded-2xl p-5 sm:p-6 shadow-xl">
+                    
+                    {/* Header Columna Derecha */}
+                    <div className="flex items-center gap-2.5 pb-4 border-b border-[#1b2030] mb-5">
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                            Datos de Envío y Pago
+                        </h2>
                     </div>
 
-                    <form onSubmit={handleConfirmarOrden} className="space-y-5">
+                    <form onSubmit={handleConfirmarOrden} className="space-y-4">
                         
-                        {/* Selector de Cliente Registrado */}
+                        {/* Selector de Cliente */}
                         <div>
-                            <label htmlFor="cliente-select" className="block text-xs uppercase tracking-wider font-bold text-slate-400 mb-2">
-                                Cliente Registrado <span className="text-red-400">*</span>
-                            </label>
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label htmlFor="cliente" className="text-xs font-semibold text-slate-300">
+                                    Cliente / Comprador <span className="text-red-400">*</span>
+                                </label>
+                                <span className="text-[11px] text-slate-400">Perfil guardado</span>
+                            </div>
+
                             {cargandoClientes ? (
-                                <div className="text-xs text-slate-500 py-2">Cargando compradores registrados...</div>
+                                <div className="text-xs text-slate-400 py-2">Cargando compradores registrados...</div>
                             ) : (
-                                <div className="relative">
-                                    <select
-                                        id="cliente-select"
-                                        value={clienteId}
-                                        onChange={(e) => {
-                                            setClienteId(e.target.value);
-                                            setCuponAplicado(null);
-                                        }}
-                                        className="w-full bg-slate-950/70 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl px-4 py-3 text-sm text-slate-100 transition shadow-inner outline-none cursor-pointer appearance-none pr-10"
-                                        required
-                                    >
-                                        <option value="" className="bg-slate-900 text-slate-500">Seleccionar comprador...</option>
-                                        {(clientes || []).map((c) => (
-                                            <option key={c.id} value={c.id} className="bg-slate-900 text-slate-200">
-                                                {c.nombre} ({c.ciudad}) — {c.email}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
-                                </div>
+                                <select
+                                    id="cliente"
+                                    value={clienteId}
+                                    onChange={(e) => {
+                                        setClienteId(e.target.value);
+                                        setCuponAplicado(null);
+                                        setCuponError(null);
+                                    }}
+                                    className="w-full bg-[#0b0d14] border border-[#1e2332] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-[#6366f1] transition cursor-pointer"
+                                    required
+                                >
+                                    <option value="">Selecciona un cliente comprador...</option>
+                                    {(clientes || []).map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.nombre} • Dev Lead ({c.email})
+                                        </option>
+                                    ))}
+                                </select>
                             )}
                         </div>
 
-                        {/* Tarjeta de Política de Envío y Regla de Negocio */}
-                        {clienteSeleccionado && (
-                            <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4.5 text-xs space-y-2.5 shadow-inner">
-                                <div className="flex items-center justify-between text-slate-300">
-                                    <span className="flex items-center gap-2 text-slate-400 font-medium">
-                                        <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        Destino:
-                                    </span>
-                                    <strong className="text-white font-semibold">{clienteSeleccionado.ciudad}</strong>
-                                </div>
-
-                                <div className="flex items-center justify-between text-slate-300">
-                                    <span className="flex items-center gap-2 text-slate-400 font-medium">
-                                        <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                                        </svg>
-                                        Tarifa de Envío:
-                                    </span>
-                                    {envioGratis ? (
-                                        <span className="font-extrabold text-emerald-400 font-mono tracking-wide">GRATIS</span>
-                                    ) : (
-                                        <span className="font-mono text-slate-200 font-semibold">{formatoMoneda(costoEnvio)}</span>
-                                    )}
-                                </div>
-
-                                {envioGratis ? (
-                                    <div className="pt-2 border-t border-slate-800/60">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Subtotal supera ₡35,000 · Envío Gratuito Activado
-                                        </span>
-                                    </div>
-                                ) : (
-                                    <p className="text-[11px] text-slate-500 pt-1.5 border-t border-slate-800/40">
-                                        💡 Agrega <strong className="text-slate-300 font-mono">{formatoMoneda(Math.max(0, 35000 - subtotalNeto))}</strong> más para obtener <strong>Envío Gratis</strong>.
-                                    </p>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Campo de Cupón de Descuento */}
+                        {/* Dirección de Despacho */}
                         <div>
-                            <label className="block text-xs uppercase tracking-wider font-bold text-slate-400 mb-2">
-                                Cupón Promocional
+                            <label className="text-xs font-semibold text-slate-300 mb-1.5 block">
+                                Dirección de Despacho
                             </label>
+                            <div className="bg-[#0b0d14] border border-[#1e2332] rounded-xl p-3 flex items-start justify-between gap-3 text-xs">
+                                <div className="flex items-start gap-2.5">
+                                    <svg className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <div>
+                                        <div className="font-semibold text-white">
+                                            {clienteSeleccionado ? `${clienteSeleccionado.ciudad}, Costa Rica` : 'Edificio Quantum, Silicon Park, CP 28045'}
+                                        </div>
+                                        <p className="text-[11px] text-slate-400 mt-0.5">
+                                            {clienteSeleccionado
+                                                ? `Tarifa estimada según zona geográfica (${clienteSeleccionado.ciudad})`
+                                                : 'Selecciona un cliente arriba para calcular tarifa y ruta'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <span className="text-[11px] text-slate-400 hover:text-white cursor-pointer font-medium">
+                                    Cambiar
+                                </span>
+                            </div>
+                        </div>
 
-                            {cuponAplicado ? (
-                                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shadow-sm">
-                                    <div className="flex items-center gap-2.5 text-xs font-medium">
-                                        <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                        </svg>
-                                        <span>
-                                            Cupón <strong className="font-mono tracking-wider font-bold">{cuponAplicado.codigo}</strong> (-{cuponAplicado.porcentaje}%)
-                                        </span>
+                        {/* Cupón de Descuento */}
+                        <div>
+                            <label htmlFor="cupon" className="text-xs font-semibold text-slate-300 mb-1.5 block">
+                                Cupón de Descuento
+                            </label>
+                            <div className="relative flex items-center">
+                                <div className="absolute left-3 text-slate-500 pointer-events-none">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                    </svg>
+                                </div>
+                                <input
+                                    id="cupon"
+                                    type="text"
+                                    placeholder="SUPERTECH20 o BIENVENIDA10"
+                                    value={cuponCodigo}
+                                    onChange={(e) => setCuponCodigo(e.target.value)}
+                                    disabled={!!cuponAplicado || validandoCupon}
+                                    className="w-full bg-[#0b0d14] border border-[#1e2332] rounded-xl pl-9 pr-24 py-2 text-xs sm:text-sm text-white placeholder-slate-500 uppercase tracking-wider font-mono focus:outline-none focus:border-[#6366f1] transition disabled:opacity-50"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleValidarCupon}
+                                    disabled={validandoCupon || !cuponCodigo.trim() || !!cuponAplicado}
+                                    className="absolute right-1 px-3 py-1.5 rounded-lg bg-[#181b28] hover:bg-[#22273a] text-white text-xs font-bold transition border border-[#2b3145] disabled:opacity-40"
+                                >
+                                    {validandoCupon ? 'Validando...' : 'Aplicar'}
+                                </button>
+                            </div>
+
+                            {/* Badge de Cupón Aplicado */}
+                            {cuponAplicado && (
+                                <div className="mt-2 p-2 px-3 rounded-xl bg-[#1c1a2e] border border-[#373356] text-[#a5b4fc] text-xs flex items-center justify-between animate-fadeIn">
+                                    <div className="flex items-center gap-1.5 font-medium truncate">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#a5b4fc]"></span>
+                                        <span>¡Cupón {cuponAplicado.codigo} aplicado! -{formatoMoneda(montoDescuento)} ({cuponAplicado.porcentaje}% descuento)</span>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={handleRemoverCupon}
-                                        className="text-emerald-400/60 hover:text-emerald-300 text-lg leading-none p-1 transition-colors"
+                                        className="text-slate-400 hover:text-white ml-2 text-sm font-bold"
                                         title="Remover cupón"
                                     >
-                                        ×
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="flex gap-2">
-                                    <div className="relative flex-1">
-                                        <input
-                                            type="text"
-                                            placeholder="EJ: DESCUENTO10, SUPERTECH20"
-                                            value={cuponCodigo}
-                                            onChange={(e) => setCuponCodigo(e.target.value.toUpperCase())}
-                                            className="w-full bg-slate-950/70 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-600 font-mono tracking-wider transition shadow-inner outline-none uppercase"
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={handleValidarCupon}
-                                        disabled={validandoCupon || !cuponCodigo.trim()}
-                                        className="px-5 py-2.5 rounded-2xl text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/80 transition-all duration-150 disabled:opacity-40 shrink-0 shadow-sm"
-                                    >
-                                        {validandoCupon ? 'Validando...' : 'Aplicar'}
+                                        ✕
                                     </button>
                                 </div>
                             )}
 
                             {cuponError && (
-                                <div className="mt-2.5">
+                                <div className="mt-2">
                                     <ErrorMessage error={cuponError} onClose={() => setCuponError(null)} />
                                 </div>
                             )}
                         </div>
 
-                        {/* Desglose de Totales */}
-                        <div className="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-5 space-y-3 text-sm shadow-inner">
-                            <div className="flex justify-between items-center text-slate-400 text-xs sm:text-sm">
-                                <span>Subtotal</span>
-                                <span className="font-mono text-slate-200 font-semibold">{formatoMoneda(subtotal)}</span>
+                        {/* Desglose de Precios */}
+                        <div className="pt-3 border-t border-[#1b2030] space-y-2 text-xs sm:text-sm">
+                            <div className="flex justify-between text-slate-400">
+                                <span>Subtotal de artículos</span>
+                                <span className="font-mono text-white font-medium">{formatoMoneda(subtotal)}</span>
                             </div>
 
-                            {cuponAplicado && (
-                                <div className="flex justify-between items-center text-emerald-400 text-xs sm:text-sm font-medium">
-                                    <span>Descuento ({porcentajeDescuento}%)</span>
-                                    <span className="font-mono font-bold">-{formatoMoneda(montoDescuento)}</span>
-                                </div>
-                            )}
-
-                            <div className="flex justify-between items-center text-slate-400 text-xs sm:text-sm">
-                                <span>Envío ({clienteSeleccionado ? clienteSeleccionado.ciudad : 'Sin seleccionar'})</span>
-                                <span className="font-mono">
-                                    {envioGratis ? (
-                                        <span className="text-emerald-400 font-bold">Gratis</span>
-                                    ) : (
-                                        <span className="text-slate-200 font-semibold">{formatoMoneda(costoEnvio)}</span>
+                            <div className="flex justify-between text-slate-400 items-center">
+                                <span className="flex items-center gap-2">
+                                    <span>Costo de Envío</span>
+                                    {envioGratis && (
+                                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                            Gratis
+                                        </span>
                                     )}
+                                </span>
+                                <span className="font-mono text-white font-medium">
+                                    {envioGratis ? '₡0' : formatoMoneda(costoEnvio)}
                                 </span>
                             </div>
 
-                            <div className="pt-3.5 border-t border-slate-800/80 flex justify-between items-baseline">
-                                <span className="text-base font-bold text-white tracking-tight">Total a Pagar</span>
-                                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-indigo-400">
+                            {cuponAplicado && (
+                                <div className="flex justify-between text-indigo-400 font-semibold">
+                                    <span>Descuento aplicado</span>
+                                    <span className="font-mono">-{formatoMoneda(montoDescuento)}</span>
+                                </div>
+                            )}
+
+                            <div className="flex justify-between text-slate-400">
+                                <span>Impuestos calculados (IVA 0%)</span>
+                                <span className="font-mono text-slate-400">₡0</span>
+                            </div>
+
+                            {/* Total Final */}
+                            <div className="pt-3.5 border-t border-[#1b2030] flex justify-between items-baseline">
+                                <div>
+                                    <span className="text-sm sm:text-base font-bold text-white tracking-tight block">
+                                        Total a Pagar
+                                    </span>
+                                    <span className="text-[11px] text-slate-400">Impuestos y tasas incluidos</span>
+                                </div>
+                                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-white">
                                     {formatoMoneda(totalFinal)}
                                 </span>
                             </div>
@@ -635,7 +618,7 @@ export default function Checkout() {
                         <button
                             type="submit"
                             disabled={procesandoOrden || !clienteId || cart.length === 0}
-                            className="w-full py-4 px-6 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-500 hover:via-indigo-500 hover:to-violet-500 shadow-xl shadow-indigo-500/25 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 active:scale-[0.99]"
+                            className="w-full py-3.5 px-5 rounded-xl font-bold text-sm text-white bg-[#6366f1] hover:bg-[#4f46e5] shadow-lg shadow-indigo-600/25 transition active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
                         >
                             {procesandoOrden ? (
                                 <>
@@ -647,20 +630,36 @@ export default function Checkout() {
                                 </>
                             ) : (
                                 <>
-                                    <svg className="w-4 h-4 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                     </svg>
-                                    <span>Confirmar y Pagar Orden · {formatoMoneda(totalFinal)}</span>
+                                    <span>Confirmar y Pagar Orden • {formatoMoneda(totalFinal)}</span>
                                 </>
                             )}
                         </button>
 
-                        <p className="text-[11px] text-slate-500 text-center flex items-center justify-center gap-1.5 pt-1">
-                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                            <span>Transacción atómica protegida con PostgreSQL (BEGIN / COMMIT / ROLLBACK)</span>
-                        </p>
+                        {ordenError && (
+                            <div className="mt-3">
+                                <ErrorMessage error={ordenError} onClose={() => setOrdenError(null)} />
+                            </div>
+                        )}
+
+                        {/* Footer de Seguridad y Pasarelas */}
+                        <div className="pt-2 text-center">
+                            <p className="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+                                <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                                <span>Pagos encriptados de extremo a extremo SSL de 256 bits</span>
+                            </p>
+                            <div className="text-[10px] font-bold tracking-widest text-slate-400 flex justify-center gap-3.5 uppercase mt-1.5">
+                                <span>VISA</span>
+                                <span>MASTERCARD</span>
+                                <span>STRIPE</span>
+                                <span>APPLE PAY</span>
+                            </div>
+                        </div>
+
                     </form>
                 </div>
 

@@ -13,11 +13,8 @@ export default function Dashboard() {
     const [cancelacionError, setCancelacionError] = useState(null);
 
     const formatoMoneda = (monto) => {
-        return new Intl.NumberFormat('es-CR', {
-            style: 'currency',
-            currency: 'CRC',
-            maximumFractionDigits: 0
-        }).format(monto || 0);
+        const num = Math.round(Number(monto) || 0);
+        return `₡${num.toLocaleString('es-CR')}`;
     };
 
     const handleCancelarOrden = async (e) => {
@@ -46,80 +43,104 @@ export default function Dashboard() {
     const { kpis, ventas_por_categoria, top_productos } = resumen;
 
     return (
-        <div className="page-container dashboard-page">
-            <header className="page-header">
+        <div className="pb-12 animate-fadeIn space-y-7">
+            {/* Header de Página con Badge */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="page-title">Panel de Control & Métricas</h1>
-                    <p className="page-subtitle">Indicadores calculados en tiempo real mediante SQL (SUM, COUNT, AVG, GROUP BY)</p>
+                    <div className="inline-flex items-center gap-1.5 bg-[#181a2e] text-[#818cf8] border border-[#292e4c] px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider mb-2 uppercase">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#818cf8]"></span>
+                        ANALYTICS & MONITORING · EN TIEMPO REAL
+                    </div>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                        Panel de Control & Métricas
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+                        Indicadores calculados en tiempo real mediante SQL (SUM, COUNT, AVG, GROUP BY).
+                    </p>
                 </div>
-                <button onClick={() => refetch()} className="btn-secondary btn-sm" title="Refrescar métricas">
-                    🔄 Actualizar
+                <button
+                    onClick={() => refetch()}
+                    className="inline-flex items-center gap-1.5 bg-[#141724] hover:bg-[#1b2031] border border-[#22283a] text-slate-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition self-start sm:self-auto"
+                >
+                    <span>🔄</span>
+                    <span>Actualizar</span>
                 </button>
-            </header>
+            </div>
 
             {/* Fila de Tarjetas de Indicadores Clave (KPIs) */}
-            <section className="metrics-grid">
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                 <MetricCard
                     title="Ingreso Total"
                     value={formatoMoneda(kpis.ingreso_total)}
                     icon="💰"
                     subtitle="Ventas acumuladas efectivas"
-                    color="emerald"
                 />
                 <MetricCard
                     title="Ticket Promedio"
                     value={formatoMoneda(kpis.ticket_promedio)}
                     icon="🏷️"
                     subtitle="Promedio monetario por orden"
-                    color="blue"
                 />
                 <MetricCard
                     title="Total de Órdenes"
                     value={kpis.total_ordenes}
                     icon="📦"
                     subtitle={`${kpis.ordenes_activas} activas · ${kpis.ordenes_entregadas} entregadas`}
-                    color="purple"
                 />
                 <MetricCard
                     title="Órdenes Canceladas"
                     value={kpis.ordenes_canceladas}
                     icon="↩️"
                     subtitle="Con reposición de inventario"
-                    color="amber"
                 />
             </section>
 
             {/* Sección de Tablas y Rankings */}
-            <div className="dashboard-columns">
-                {/* Ventas Agrupadas por Categoría */}
-                <section className="card-panel">
-                    <div className="card-panel-header">
-                        <h2>📊 Ventas por Categoría</h2>
-                        <span className="badge-tag">GROUP BY categoria</span>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                {/* Ventas Agrupadas por Categoría (7 cols) */}
+                <section className="lg:col-span-7 bg-[#10131c] border border-[#1e2333] rounded-2xl p-5 sm:p-6 shadow-xl">
+                    <div className="flex items-center justify-between pb-4 border-b border-[#1b2030] mb-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-base">📊</span>
+                            <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                                Ventas por Categoría
+                            </h2>
+                        </div>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#181a28] text-indigo-300 border border-[#2b3148]">
+                            GROUP BY categoria
+                        </span>
                     </div>
 
-                    <div className="table-responsive">
-                        <table className="data-table">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
                             <thead>
-                                <tr>
-                                    <th>Categoría</th>
-                                    <th>Órdenes</th>
-                                    <th>Unidades</th>
-                                    <th>Total Ventas</th>
+                                <tr className="border-b border-[#1b2030] text-slate-400 uppercase tracking-wider text-[11px]">
+                                    <th className="pb-3 font-semibold">Categoría</th>
+                                    <th className="pb-3 font-semibold text-center">Órdenes</th>
+                                    <th className="pb-3 font-semibold text-center">Unidades</th>
+                                    <th className="pb-3 font-semibold text-right">Total Ventas</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-[#181d2a]">
                                 {ventas_por_categoria.map((cat) => (
-                                    <tr key={cat.categoria}>
-                                        <td className="font-semibold">{cat.categoria}</td>
-                                        <td>{cat.ordenes_asociadas}</td>
-                                        <td>{cat.unidades_vendidas}</td>
-                                        <td className="font-mono">{formatoMoneda(cat.total_ventas)}</td>
+                                    <tr key={cat.categoria} className="hover:bg-[#141724]/50 transition-colors">
+                                        <td className="py-3 font-semibold text-white flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                                            {cat.categoria}
+                                        </td>
+                                        <td className="py-3 text-center text-slate-300 font-mono">{cat.ordenes_asociadas}</td>
+                                        <td className="py-3 text-center text-slate-300 font-mono">{cat.unidades_vendidas}</td>
+                                        <td className="py-3 text-right font-mono font-bold text-white">
+                                            {formatoMoneda(cat.total_ventas)}
+                                        </td>
                                     </tr>
                                 ))}
                                 {ventas_por_categoria.length === 0 && (
                                     <tr>
-                                        <td colSpan="4" className="text-center py-4">No hay ventas registradas aún</td>
+                                        <td colSpan="4" className="text-center py-6 text-slate-500">
+                                            No hay ventas registradas aún
+                                        </td>
                                     </tr>
                                 )}
                             </tbody>
@@ -127,57 +148,86 @@ export default function Dashboard() {
                     </div>
                 </section>
 
-                {/* Top 3 Productos Más Vendidos */}
-                <section className="card-panel">
-                    <div className="card-panel-header">
-                        <h2>🏆 Top 3 Más Vendidos</h2>
-                        <span className="badge-tag">LIMIT 3</span>
+                {/* Top 3 Productos Más Vendidos (5 cols) */}
+                <section className="lg:col-span-5 bg-[#10131c] border border-[#1e2333] rounded-2xl p-5 sm:p-6 shadow-xl">
+                    <div className="flex items-center justify-between pb-4 border-b border-[#1b2030] mb-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-base">🏆</span>
+                            <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                                Top 3 Más Vendidos
+                            </h2>
+                        </div>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#181a28] text-indigo-300 border border-[#2b3148]">
+                            LIMIT 3
+                        </span>
                     </div>
 
-                    <div className="top-products-list">
+                    <div className="space-y-3">
                         {top_productos.map((prod, index) => (
-                            <div key={prod.id} className="top-product-item">
-                                <div className={`rank-badge rank-${index + 1}`}>
-                                    #{index + 1}
+                            <div
+                                key={prod.id}
+                                className="bg-[#0c0e15] border border-[#1a1f2d] rounded-xl p-3.5 flex items-center justify-between gap-3"
+                            >
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-8 h-8 rounded-xl bg-[#141724] border border-[#22283a] text-indigo-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                                        #{index + 1}
+                                    </div>
+                                    <div className="truncate">
+                                        <h4 className="font-bold text-white text-xs sm:text-sm truncate">
+                                            {prod.nombre}
+                                        </h4>
+                                        <p className="text-[11px] text-slate-400 mt-0.5">
+                                            {prod.categoria} · {formatoMoneda(prod.precio)}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="top-product-info">
-                                    <h4>{prod.nombre}</h4>
-                                    <p className="text-muted">{prod.categoria} · {formatoMoneda(prod.precio)}</p>
-                                </div>
-                                <div className="top-product-stats">
-                                    <span className="units-sold">{prod.unidades_vendidas} unidades</span>
-                                    <span className="revenue-generated">{formatoMoneda(prod.ingresos_generados)}</span>
+
+                                <div className="text-right shrink-0">
+                                    <span className="text-xs font-bold text-emerald-400 font-mono block">
+                                        {prod.unidades_vendidas} unds
+                                    </span>
+                                    <span className="text-[11px] font-mono text-slate-400">
+                                        {formatoMoneda(prod.ingresos_generados)}
+                                    </span>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </section>
+
             </div>
 
-            {/* Sección Interactiva: Demostración de Cancelación y Regla HTTP 409 Server-Side */}
-            <section className="card-panel mt-6">
-                <div className="card-panel-header">
-                    <h2>🛡️ Demostración de Regla Transaccional: Cancelación y Reposición</h2>
-                    <span className="badge-conflict">HTTP 200 vs 409</span>
+            {/* Sección Interactiva: Demostración de Cancelación Transaccional */}
+            <section className="bg-[#10131c] border border-[#1e2333] rounded-2xl p-5 sm:p-6 shadow-xl">
+                <div className="flex items-center justify-between pb-4 border-b border-[#1b2030] mb-3">
+                    <div className="flex items-center gap-2">
+                        <span className="text-base">🛡️</span>
+                        <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                            Regla Transaccional: Cancelación y Reposición
+                        </h2>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#251717] text-red-300 border border-[#442323]">
+                        HTTP 200 vs 409
+                    </span>
                 </div>
-                <p className="text-muted mb-4">
-                    Prueba cancelar una orden: si está en <strong>'nueva'</strong> o <strong>'pagada'</strong> (ej. Orden #4), se cancela y repone el stock (HTTP 200). Si ya fue <strong>'enviada'</strong> o <strong>'entregada'</strong> (ej. Orden #1 o #3), el servidor aborta la transacción con <strong>HTTP 409 Conflict</strong>.
+                <p className="text-xs text-slate-400 mb-4 max-w-2xl leading-relaxed">
+                    Prueba cancelar una orden: si está en estado <strong>'nueva'</strong> o <strong>'pagada'</strong> (ej. Orden #4), se cancela y repone el stock atómicamente (HTTP 200). Si ya fue <strong>'enviada'</strong> o <strong>'entregada'</strong> (ej. Orden #1 o #3), el servidor aborta la transacción con <strong>HTTP 409 Conflict</strong>.
                 </p>
 
-                <form onSubmit={handleCancelarOrden} className="cancel-form">
+                <form onSubmit={handleCancelarOrden} className="flex flex-col sm:flex-row gap-3 max-w-lg">
                     <input
                         type="number"
                         placeholder="Ingresa el ID de la orden (ej: 1, 3, 4)"
                         value={ordenIdACancelar}
                         onChange={(e) => setOrdenIdACancelar(e.target.value)}
-                        className="filter-input"
+                        className="flex-1 bg-[#0b0d14] border border-[#1e2332] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#6366f1] transition"
                         required
                         min="1"
                     />
                     <button
                         type="submit"
                         disabled={cancelando}
-                        className="btn-danger"
+                        className="bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm transition disabled:opacity-40"
                     >
                         {cancelando ? 'Verificando con servidor...' : 'Intentar Cancelar Orden'}
                     </button>
@@ -193,12 +243,12 @@ export default function Dashboard() {
                 )}
 
                 {cancelacionRespuesta && (
-                    <div className="alert-success mt-4">
-                        <span className="alert-icon">✅</span>
+                    <div className="mt-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs sm:text-sm flex items-start gap-2.5 animate-fadeIn">
+                        <span className="text-base">✅</span>
                         <div>
                             <strong>Cancelación exitosa (HTTP 200):</strong> {cancelacionRespuesta.mensaje}.
-                            <div className="text-sm mt-1">
-                                Orden #{cancelacionRespuesta.orden.id} pasó a estado <code>{cancelacionRespuesta.orden.estado}</code> y se devolvieron las unidades exactas a la tabla <code>productos</code>.
+                            <div className="text-xs text-slate-300 mt-1">
+                                Orden #{cancelacionRespuesta.orden.id} pasó a estado <code className="bg-[#141724] px-1 py-0.5 rounded text-emerald-300">{cancelacionRespuesta.orden.estado}</code> y se devolvieron las unidades exactas a la tabla <code>productos</code>.
                             </div>
                         </div>
                     </div>

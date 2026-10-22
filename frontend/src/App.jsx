@@ -11,9 +11,9 @@ export default function App() {
     return (
         <CartProvider>
             <BrowserRouter>
-                <div className="app-layout">
+                <div className="min-h-screen bg-[#090a0f] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
                     <Navbar />
-                    <main className="main-content">
+                    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
                         <Routes>
                             <Route path="/" element={<Dashboard />} />
                             <Route path="/catalogo" element={<Catalog />} />
@@ -22,8 +22,23 @@ export default function App() {
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </main>
-                    <footer className="app-footer">
-                        <p>© 2026 TechStore · Laboratorio #2 (Caso 5: React 18 + Node.js + PostgreSQL + n8n AI Agent)</p>
+                    
+                    {/* Modern Sleek Footer matching screenshot */}
+                    <footer className="border-t border-[#1a1f2e] bg-[#08090d] text-xs text-slate-500 py-6 mt-auto">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                <p>© 2026 TechStore Inc. Raycast-inspired developer hardware · Laboratorio #2 (Caso 5)</p>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <span className="hover:text-slate-400 cursor-pointer transition">Privacidad</span>
+                                <span className="hover:text-slate-400 cursor-pointer transition">Términos</span>
+                                <span className="hover:text-indigo-400 cursor-pointer transition flex items-center gap-1 font-medium">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                                    Soporte IA
+                                </span>
+                            </div>
+                        </div>
                     </footer>
                 </div>
             </BrowserRouter>
