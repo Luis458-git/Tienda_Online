@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { getProductoById } from '../services/api';
-import { consultarAgenteIA } from '../services/aiService';
+import { generarDescripcionProducto } from '../services/aiService';
 import { useCart } from '../context/CartContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import AiAssistantModal from '../components/AiAssistantModal';
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -13,7 +14,8 @@ export default function ProductDetail() {
     const [cantidad, setCantidad] = useState(1);
     const [agregadoMensaje, setAgregadoMensaje] = useState(false);
 
-    // Estado del Agente de IA
+    // Estado del Agente de IA y Modal
+    const [modalAbierto, setModalAbierto] = useState(false);
     const [consultandoIA, setConsultandoIA] = useState(false);
     const [respuestaIA, setRespuestaIA] = useState(null);
     const [errorIA, setErrorIA] = useState(null);
@@ -43,8 +45,9 @@ export default function ProductDetail() {
         if (!producto) return;
         setConsultandoIA(true);
         setErrorIA(null);
+        setModalAbierto(true);
         try {
-            const respuesta = await consultarAgenteIA(producto);
+            const respuesta = await generarDescripcionProducto(producto.nombre, producto.categoria);
             if (respuesta && respuesta.ok) {
                 setRespuestaIA(respuesta.data);
             } else {
@@ -166,7 +169,7 @@ export default function ProductDetail() {
                         disabled={consultandoIA}
                         className="btn-ai-generate w-full"
                     >
-                        {consultandoIA ? 'Consultando al Agente de IA...' : '⚡ Generar Copy y Recomendaciones con IA'}
+                        {consultandoIA ? 'Consultando al Agente de IA...' : '✨ Consultar Copiloto IA'}
                     </button>
 
                     {errorIA && (
@@ -188,7 +191,7 @@ export default function ProductDetail() {
                                     <ul className="ai-recommendations-list">
                                         {respuestaIA.recomendados.map((item, idx) => (
                                             <li key={idx} className="ai-recommendation-item">
-                                                <span>✓ {item}</span>
+                                                <span>✓ {typeof item === 'string' ? item : item.nombre}</span>
                                             </li>
                                         ))}
                                     </ul>
@@ -202,6 +205,19 @@ export default function ProductDetail() {
                     )}
                 </div>
             </div>
+
+            {/* Modal Reusable del Copiloto IA */}
+            <AiAssistantModal
+                isOpen={modalAbierto}
+                onClose={() => setModalAbierto(false)}
+                title={`Copiloto IA: ${producto.nombre}`}
+                subtitle={`Análisis comercial y técnico para categoría "${producto.categoria}"`}
+                loading={consultandoIA}
+                error={errorIA}
+                data={respuestaIA}
+                tipo="descripcion"
+                onEjecutarConsulta={handleConsultarIA}
+            />
         </div>
     );
 }

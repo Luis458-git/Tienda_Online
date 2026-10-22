@@ -1,0 +1,176 @@
+{
+  "name": "Agente IA - TechStore Copilot (Caso 5)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "recomendador-ia",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger-01",
+      "name": "Webhook TechStore",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        180,
+        340
+      ],
+      "webhookId": "techstore-ai-copilot"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst action = body.action || 'generar_descripcion';\n\nlet prompt = '';\nif (action === 'generar_descripcion') {\n  const p = body.producto || {};\n  prompt = `Genera una descripción comercial persuasiva y técnica para el producto de tecnología:\nNombre: ${p.nombre || 'Producto'}\nCategoría: ${p.categoria || 'Tecnología'}\n\nDevuelve OBLIGATORIAMENTE un JSON estrictamente válido con este esquema:\n{\n  \"copy_comercial\": \"texto persuasivo de 2 a 3 oraciones destacando valor y especificaciones\",\n  \"puntos_clave\": [\"característica 1\", \"característica 2\", \"característica 3\"],\n  \"recomendados\": [\"Producto complementario 1\", \"Producto complementario 2\"]\n}`;\n} else if (action === 'recomendar_carrito') {\n  const items = body.items || [];\n  const listaNombres = items.map(i => `${i.nombre} (${i.categoria || 'General'})`).join(', ');\n  prompt = `El cliente tiene los siguientes artículos en su carrito de compras de tecnología:\n${listaNombres || 'Sin productos aún'}\n\nAnaliza estos artículos y sugiere exactamente 2 o 3 productos complementarios ideales del catálogo de tecnología (ejemplos: Mouse Pad XL, Soporte para Laptop, Cable HDMI 4K, Disco SSD NVMe, Auriculares, Webcam 1080p).\n\nDevuelve OBLIGATORIAMENTE un JSON estrictamente válido con este esquema:\n{\n  \"analisis_carrito\": \"breve diagnóstico de 1 o 2 oraciones sobre lo que está armando el cliente\",\n  \"recomendados\": [\n    {\n      \"nombre\": \"Nombre del producto\",\n      \"justificacion\": \"Por qué complementa perfectamente su compra\"\n    }\n  ]\n}`;\n} else {\n  prompt = `Devuelve un JSON con: {\"mensaje\": \"Acción no reconocida\"}`;\n}\n\nreturn [{\n  json: {\n    action,\n    prompt,\n    originalBody: body\n  }\n}];"
+      },
+      "id": "code-prepare-prompt",
+      "name": "Preparar Prompt IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "options": {
+          "systemMessage": "Eres el Agente Inteligente Copiloto de 'TechStore', una tienda especializada en hardware y tecnología de punta. Tu objetivo es brindar asistencia de ventas comercial de alta calidad y recomendaciones precisas.\n\nReglas críticas:\n1. Responde SIEMPRE única y exclusivamente con un objeto JSON válido, sin bloques de código markdown como ```json ... ``` ni texto adicional antes o después.\n2. Tono: profesional, persuasivo, conocedor de tecnología, directo al grano.\n3. Respeta fielmente la estructura solicitada en el prompt del usuario."
+        }
+      },
+      "id": "ai-agent-ecommerce",
+      "name": "AI Agent Copilot",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        640,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "chat-model-openai",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        640,
+        540
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "CONFIGURAR_TU_CREDENTIAL_ID",
+          "name": "OpenAI Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nlet rawOutput = item.output || item.text || '';\nlet dataParsed = null;\nlet errorMsg = null;\n\ntry {\n  // Limpieza de formato markdown si el modelo incluyó ```json\n  let cleanText = String(rawOutput).trim();\n  if (cleanText.startsWith('```')) {\n    cleanText = cleanText.replace(/^```json\\s*/i, '').replace(/^```\\s*/i, '').replace(/```$/i, '').trim();\n  }\n  dataParsed = JSON.parse(cleanText);\n} catch (e) {\n  // Si falla el parseo, entregar texto plano encapsulado\n  dataParsed = {\n    resultado_texto: rawOutput\n  };\n}\n\n// Contrato estricto requerido por el laboratorio\nreturn [{\n  json: {\n    ok: true,\n    data: dataParsed,\n    error: null\n  }\n}];"
+      },
+      "id": "code-format-response",
+      "name": "Formatear Contrato Estricto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-to-webhook-node",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1140,
+        340
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook TechStore": {
+      "main": [
+        [
+          {
+            "node": "Preparar Prompt IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Prompt IA": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Copilot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Copilot": {
+      "main": [
+        [
+          {
+            "node": "Formatear Contrato Estricto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Copilot",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear Contrato Estricto": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -58,7 +58,11 @@
 }
 
 body {
-    background-color: var(--bg-main);
+    background-color: #080c14;
+    background-image: 
+        radial-gradient(at 20% 10%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 80% 90%, rgba(99, 102, 241, 0.06) 0px, transparent 50%);
+    background-attachment: fixed;
     color: var(--text-primary);
     font-family: var(--font-sans);
     line-height: 1.5;
